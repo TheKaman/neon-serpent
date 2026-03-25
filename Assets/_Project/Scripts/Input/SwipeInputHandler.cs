@@ -6,8 +6,8 @@ using NeonSerpent.Snake;
 namespace NeonSerpent.Input
 {
     /// <summary>
-    /// Detects swipe gestures and translates them into 4-directional inputs for SnakeController.
-    /// Uses polling in Update() — works on touch (Android) and mouse (Editor testing).
+    /// Detects swipe gestures (touch + mouse) and arrow/WASD keys (editor only).
+    /// Translates input into 4-directional Vector2Int for SnakeController.
     /// </summary>
     public class SwipeInputHandler : MonoBehaviour
     {
@@ -15,8 +15,8 @@ namespace NeonSerpent.Input
         [SerializeField] private SnakeController _snake;
 
         [Header("Swipe Settings")]
-        [SerializeField] private float _swipeThreshold = 50f;   // pixels
-        [SerializeField] private float _maxSwipeTime   = 0.35f; // seconds
+        [SerializeField] private float _swipeThreshold = 30f;   // pixels — lower = easier to trigger
+        [SerializeField] private float _maxSwipeTime   = 0.5f;  // seconds
 
         private Vector2 _touchStartPos;
         private float   _touchStartTime;
@@ -26,10 +26,45 @@ namespace NeonSerpent.Input
 
         private void Update()
         {
-            HandleTouch();
+            HandleKeyboard();
             HandleMouse();
+            HandleTouch();
         }
 
+        // ── Keyboard (works in Editor and on desktop builds) ──────────────────
+        private void HandleKeyboard()
+        {
+            var kb = Keyboard.current;
+            if (kb == null) return;
+
+            if (kb.upArrowKey.wasPressedThisFrame    || kb.wKey.wasPressedThisFrame)
+                Send(Vector2Int.up);
+            else if (kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame)
+                Send(Vector2Int.down);
+            else if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame)
+                Send(Vector2Int.left);
+            else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame)
+                Send(Vector2Int.right);
+        }
+
+        // ── Mouse drag (Editor testing) ───────────────────────────────────────
+        private void HandleMouse()
+        {
+            var mouse = Mouse.current;
+            if (mouse == null) return;
+
+            if (mouse.leftButton.wasPressedThisFrame)
+            {
+                _touchStartPos  = mouse.position.ReadValue();
+                _touchStartTime = Time.realtimeSinceStartup;
+                _tracking       = true;
+            }
+
+            if (_tracking && mouse.leftButton.wasReleasedThisFrame)
+                TryEvaluateSwipe(mouse.position.ReadValue());
+        }
+
+        // ── Touch (Android device) ────────────────────────────────────────────
         private void HandleTouch()
         {
             var screen = Touchscreen.current;
@@ -48,22 +83,7 @@ namespace NeonSerpent.Input
                 TryEvaluateSwipe(touch.position.ReadValue());
         }
 
-        private void HandleMouse()
-        {
-            var mouse = Mouse.current;
-            if (mouse == null) return;
-
-            if (mouse.leftButton.wasPressedThisFrame)
-            {
-                _touchStartPos  = mouse.position.ReadValue();
-                _touchStartTime = Time.realtimeSinceStartup;
-                _tracking       = true;
-            }
-
-            if (_tracking && mouse.leftButton.wasReleasedThisFrame)
-                TryEvaluateSwipe(mouse.position.ReadValue());
-        }
-
+        // ── Shared swipe evaluation ───────────────────────────────────────────
         private void TryEvaluateSwipe(Vector2 endPos)
         {
             _tracking = false;
@@ -73,9 +93,12 @@ namespace NeonSerpent.Input
             Vector2 delta = endPos - _touchStartPos;
             if (delta.magnitude < _swipeThreshold) return;
 
-            Vector2Int dir = GetDominantAxis(delta);
-            if (dir == Vector2Int.zero) return;
+            Send(GetDominantAxis(delta));
+        }
 
+        private void Send(Vector2Int dir)
+        {
+            if (dir == Vector2Int.zero) return;
             OnSwipeDetected?.Invoke(dir);
             _snake?.SetDirection(dir);
         }

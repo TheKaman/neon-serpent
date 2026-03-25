@@ -10,7 +10,7 @@ namespace NeonSerpent.PowerUps
     public class PowerUpItem : MonoBehaviour
     {
         [SerializeField] private PowerUpType _type;
-        [SerializeField] private float _bobAmplitude = 0.15f;
+        [SerializeField] private float _bobAmplitude = 0.06f;
         [SerializeField] private float _bobFrequency = 2f;
 
         public PowerUpType Type => _type;
