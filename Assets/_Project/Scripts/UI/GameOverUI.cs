@@ -7,7 +7,8 @@ using NeonSerpent.Ads;
 namespace NeonSerpent.UI
 {
     /// <summary>
-    /// Shown after a game over event. Displays final score and navigation buttons.
+    /// Shown after game over. Listens to both GameManager (full flow)
+    /// and GameSession (direct-play from Editor) so it works in both cases.
     /// </summary>
     public class GameOverUI : MonoBehaviour
     {
@@ -19,6 +20,7 @@ namespace NeonSerpent.UI
 
         [Header("References")]
         [SerializeField] private ScoreManager _scoreManager;
+        [SerializeField] private GameSession  _gameSession;
 
         private void Awake()
         {
@@ -29,35 +31,48 @@ namespace NeonSerpent.UI
 
         private void OnEnable()
         {
+            // Full flow — GameManager exists (Bootstrap loaded)
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameOver += Show;
+
+            // Direct-play from Editor — no Bootstrap
+            if (_gameSession != null)
+                _gameSession.OnSessionGameOver += Show;
         }
 
         private void OnDisable()
         {
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameOver -= Show;
+
+            if (_gameSession != null)
+                _gameSession.OnSessionGameOver -= Show;
         }
 
         private void Show()
         {
             if (_panel != null) _panel.SetActive(true);
+
             if (_finalScoreText != null && _scoreManager != null)
                 _finalScoreText.text = $"SCORE\n{_scoreManager.CurrentScore:N0}";
 
             Invoke(nameof(ShowAd), 0.8f);
         }
 
-        private void ShowAd()
-        {
-            if (AdManager.Instance != null)
-                AdManager.Instance.ShowGameOverInterstitial();
-        }
+        private void ShowAd() => AdManager.Instance?.ShowGameOverInterstitial();
 
         private void OnRestart()
         {
             if (_panel != null) _panel.SetActive(false);
-            GameManager.Instance?.StartGame(GameManager.Instance.CurrentMode);
+
+            // Reset score
+            _scoreManager?.ResetScore();
+
+            var gm = GameManager.Instance;
+            if (gm != null)
+                gm.StartGame(gm.CurrentMode);
+            else
+                _gameSession?.SendMessage("BeginSession"); // direct-play restart
         }
 
         private void OnMainMenu()

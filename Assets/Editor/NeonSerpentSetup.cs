@@ -561,6 +561,7 @@ public class NeonSerpentSetup : EditorWindow
         SetRef(gameOverUIGO, "_restartButton",  restartBtnGO.GetComponent<Button>());
         SetRef(gameOverUIGO, "_mainMenuButton", menuBtnGO.GetComponent<Button>());
         SetRef(gameOverUIGO, "_scoreManager",   scoreMgr);
+        SetRef(gameOverUIGO, "_gameSession",    session);
 
         EditorSceneManager.SaveScene(scene, path);
         Debug.Log("[Setup] Game scene created.");

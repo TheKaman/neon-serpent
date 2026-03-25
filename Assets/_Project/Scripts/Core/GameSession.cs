@@ -28,6 +28,9 @@ namespace NeonSerpent.Core
 
         private bool _sessionStarted;
 
+        // Fired when the session ends — GameOverUI subscribes to this
+        public event System.Action OnSessionGameOver;
+
         private void Start()
         {
             var gm = GameManager.Instance;
@@ -86,7 +89,7 @@ namespace NeonSerpent.Core
 
         private void HandleGameStarted(GameMode mode) => BeginSession();
 
-        private void BeginSession()
+        public void BeginSession()
         {
             if (_sessionStarted) return;
             _sessionStarted = true;
@@ -129,17 +132,17 @@ namespace NeonSerpent.Core
 
         private void HandleFatalHit()
         {
+            _sessionStarted = false;
+            _foodSpawner.StopSpawning();
+            _powerUpSpawner?.StopSpawning();
+            _powerUpManager?.ClearAll();
+            AudioManager.Instance?.PlaySFX(SoundEvent.Death);
+
             var gm = GameManager.Instance;
             if (gm != null)
                 gm.TriggerGameOver();
             else
-            {
-                // Direct play — just reset
-                _sessionStarted = false;
-                _snake.Initialize(_snakeStartPos);
-                _foodSpawner.StopSpawning();
-                _foodSpawner.StartSpawning();
-            }
+                OnSessionGameOver?.Invoke(); // fallback for direct-play mode
         }
     }
 }
