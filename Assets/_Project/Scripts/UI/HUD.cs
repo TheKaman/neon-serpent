@@ -1,23 +1,23 @@
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
 using NeonSerpent.Scoring;
 using NeonSerpent.Levels;
 
 namespace NeonSerpent.UI
 {
     /// <summary>
-    /// In-game HUD: score display, timer, and power-up icon area.
-    /// Subscribes to ScoreManager and LevelManager events.
+    /// In-game HUD: score display and timer.
+    /// Subscribes to ScoreManager and (optionally) LevelManager events.
     /// </summary>
     public class HUD : MonoBehaviour
     {
         [Header("Score")]
-        [SerializeField] private TextMeshProUGUI _scoreText;
-        [SerializeField] private TextMeshProUGUI _multiplierText;
+        [SerializeField] private Text _scoreText;
+        [SerializeField] private Text _multiplierText;
 
-        [Header("Timer (Time Attack / Campaign)")]
-        [SerializeField] private GameObject      _timerPanel;
-        [SerializeField] private TextMeshProUGUI _timerText;
+        [Header("Timer (Time Attack / Campaign only)")]
+        [SerializeField] private GameObject _timerPanel;
+        [SerializeField] private Text       _timerText;
 
         [Header("References")]
         [SerializeField] private ScoreManager _scoreManager;

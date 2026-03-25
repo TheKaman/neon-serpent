@@ -4,9 +4,9 @@ using NeonSerpent.Utilities;
 namespace NeonSerpent.Grid
 {
     /// <summary>
-    /// Renders the neon grid background as a procedural mesh of lines.
-    /// Attach to a child GameObject of the GridSystem with a MeshFilter and MeshRenderer.
-    /// The material should use an Unlit/Color or URP Unlit shader with the grid line color.
+    /// Renders the neon grid background as a procedural mesh of line quads.
+    /// Attach to a child GameObject of the GridSystem with MeshFilter + MeshRenderer.
+    /// The material color controls the grid line color.
     /// </summary>
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class NeonGridRenderer : MonoBehaviour
@@ -29,7 +29,6 @@ namespace NeonSerpent.Grid
 
         private void Start()
         {
-            // Wait a frame so GridSystem has initialized
             BuildGridMesh();
             CenterCamera();
         }
@@ -40,62 +39,58 @@ namespace NeonSerpent.Grid
             int w = _grid.Width;
             int h = _grid.Height;
 
-            // Each line segment = a thin quad (4 verts, 2 tris)
-            // Lines: (w+1) vertical + (h+1) horizontal
-            int lineCount  = (w + 1) + (h + 1);
-            var vertices   = new Vector3[lineCount * 4];
-            var triangles  = new int[lineCount * 6];
-            var colors     = new Color[lineCount * 4];
+            int lineCount = (w + 1) + (h + 1);
+            var vertices  = new Vector3[lineCount * 4];
+            var triangles = new int[lineCount * 6];
+            var uvs       = new Vector2[lineCount * 4];
 
-            int vi = 0; int ti = 0;
-
-            float half = _lineWidth * 0.5f;
+            int vi = 0, ti = 0;
+            float half   = _lineWidth * 0.5f;
             float totalW = w * Constants.CELL_SIZE;
             float totalH = h * Constants.CELL_SIZE;
 
-            // Vertical lines
             for (int x = 0; x <= w; x++)
             {
                 float px = x * Constants.CELL_SIZE - half;
-                vertices[vi + 0] = new Vector3(px,        -half,   0);
-                vertices[vi + 1] = new Vector3(px + _lineWidth, -half, 0);
-                vertices[vi + 2] = new Vector3(px,        totalH + half, 0);
+                vertices[vi + 0] = new Vector3(px,              -half,         0);
+                vertices[vi + 1] = new Vector3(px + _lineWidth, -half,         0);
+                vertices[vi + 2] = new Vector3(px,              totalH + half, 0);
                 vertices[vi + 3] = new Vector3(px + _lineWidth, totalH + half, 0);
                 AddQuadTris(triangles, ref ti, vi);
-                for (int i = 0; i < 4; i++) colors[vi + i] = _lineColor;
                 vi += 4;
             }
 
-            // Horizontal lines
             for (int y = 0; y <= h; y++)
             {
                 float py = y * Constants.CELL_SIZE - half;
-                vertices[vi + 0] = new Vector3(-half,       py,                  0);
-                vertices[vi + 1] = new Vector3(totalW + half, py,                0);
-                vertices[vi + 2] = new Vector3(-half,       py + _lineWidth,     0);
-                vertices[vi + 3] = new Vector3(totalW + half, py + _lineWidth,   0);
+                vertices[vi + 0] = new Vector3(-half,         py,              0);
+                vertices[vi + 1] = new Vector3(totalW + half, py,              0);
+                vertices[vi + 2] = new Vector3(-half,         py + _lineWidth, 0);
+                vertices[vi + 3] = new Vector3(totalW + half, py + _lineWidth, 0);
                 AddQuadTris(triangles, ref ti, vi);
-                for (int i = 0; i < 4; i++) colors[vi + i] = _lineColor;
                 vi += 4;
             }
 
-            var mesh       = new Mesh();
-            mesh.name      = "NeonGrid";
+            for (int i = 0; i < uvs.Length; i++) uvs[i] = Vector2.one;
+
+            var mesh       = new Mesh { name = "NeonGrid" };
             mesh.vertices  = vertices;
             mesh.triangles = triangles;
-            mesh.colors    = colors;
+            mesh.uv        = uvs;
             mesh.RecalculateBounds();
-
             _meshFilter.mesh = mesh;
+
+            if (_meshRenderer.sharedMaterial != null)
+                _meshRenderer.sharedMaterial.color = _lineColor;
         }
 
         private void AddQuadTris(int[] tris, ref int ti, int vi)
         {
-            tris[ti++] = vi + 0; tris[ti++] = vi + 2; tris[ti++] = vi + 1;
+            tris[ti++] = vi;     tris[ti++] = vi + 2; tris[ti++] = vi + 1;
             tris[ti++] = vi + 1; tris[ti++] = vi + 2; tris[ti++] = vi + 3;
         }
 
-        /// <summary>Center the camera on the grid and fit it to the screen.</summary>
+        /// <summary>Center the main camera on the grid.</summary>
         private void CenterCamera()
         {
             Camera cam = Camera.main;
@@ -104,16 +99,16 @@ namespace NeonSerpent.Grid
             float gridW = _grid.Width  * Constants.CELL_SIZE;
             float gridH = _grid.Height * Constants.CELL_SIZE;
 
-            // Center camera on grid
-            cam.transform.position = new Vector3(gridW * 0.5f - Constants.CELL_SIZE * 0.5f,
-                                                  gridH * 0.5f - Constants.CELL_SIZE * 0.5f,
-                                                  -10f);
+            cam.transform.position = new Vector3(
+                gridW * 0.5f - Constants.CELL_SIZE * 0.5f,
+                gridH * 0.5f - Constants.CELL_SIZE * 0.5f,
+                -10f);
 
-            // Fit orthographic size with a small margin
             float margin = 1.5f;
             float aspect = (float)Screen.width / Screen.height;
-            cam.orthographicSize = Mathf.Max(gridH * 0.5f + margin,
-                                             gridW * 0.5f / aspect + margin);
+            cam.orthographicSize = Mathf.Max(
+                gridH * 0.5f + margin,
+                gridW * 0.5f / aspect + margin);
         }
     }
 }
