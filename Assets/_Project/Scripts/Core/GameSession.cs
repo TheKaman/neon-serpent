@@ -9,9 +9,9 @@ using NeonSerpent.Audio;
 namespace NeonSerpent.Core
 {
     /// <summary>
-    /// The Game scene's coordinator. Wires together all in-scene systems by subscribing
-    /// to SnakeController events and dispatching to the appropriate handlers.
-    /// This is the only script that knows about all Game scene components simultaneously.
+    /// Coordinates all in-scene game systems. Handles both:
+    /// - Normal flow (loaded via Bootstrap → GameManager exists)
+    /// - Direct play from Editor (Bootstrap not loaded → starts immediately)
     /// </summary>
     public class GameSession : MonoBehaviour
     {
@@ -24,53 +24,76 @@ namespace NeonSerpent.Core
         [SerializeField] private LevelManager    _levelManager;
 
         [Header("Start Position (grid coords)")]
-        [SerializeField] private Vector2Int _snakeStartPos = new Vector2Int(10, 10);
+        [SerializeField] private Vector2Int _snakeStartPos = new Vector2Int(5, 10);
 
-        private void OnEnable()
+        private bool _sessionStarted;
+
+        private void Start()
         {
-            GameManager.Instance.OnGameStarted += HandleGameStarted;
-            GameManager.Instance.OnGameOver    += HandleGameOver;
-            GameManager.Instance.OnPaused      += HandlePaused;
-            GameManager.Instance.OnResumed     += HandleResumed;
+            var gm = GameManager.Instance;
 
-            _snake.OnAteFood   += HandleAteFood;
-            _snake.OnAtePowerUp += HandleAtePowerUp;
-            _snake.OnHitWall   += HandleFatalHit;
-            _snake.OnHitSelf   += HandleFatalHit;
-        }
-
-        private void OnDisable()
-        {
-            if (GameManager.Instance != null)
+            if (gm == null)
             {
-                GameManager.Instance.OnGameStarted -= HandleGameStarted;
-                GameManager.Instance.OnGameOver    -= HandleGameOver;
-                GameManager.Instance.OnPaused      -= HandlePaused;
-                GameManager.Instance.OnResumed     -= HandleResumed;
+                // No Bootstrap loaded — playing directly from Editor. Start immediately.
+                BeginSession();
+                return;
             }
 
+            // Subscribe to GameManager events
+            gm.OnGameStarted += HandleGameStarted;
+            gm.OnGameOver    += HandleGameOver;
+            gm.OnPaused      += HandlePaused;
+            gm.OnResumed     += HandleResumed;
+
+            // Subscribe to snake events
+            SubscribeSnakeEvents();
+
+            // If GameManager is already in Playing state (scene loaded mid-game), begin now
+            if (gm.CurrentState == GameState.Playing)
+                BeginSession();
+        }
+
+        private void OnDestroy()
+        {
+            var gm = GameManager.Instance;
+            if (gm == null) return;
+
+            gm.OnGameStarted -= HandleGameStarted;
+            gm.OnGameOver    -= HandleGameOver;
+            gm.OnPaused      -= HandlePaused;
+            gm.OnResumed     -= HandleResumed;
+
+            UnsubscribeSnakeEvents();
+        }
+
+        private void SubscribeSnakeEvents()
+        {
+            if (_snake == null) return;
+            _snake.OnAteFood    += HandleAteFood;
+            _snake.OnAtePowerUp += HandleAtePowerUp;
+            _snake.OnHitWall    += HandleFatalHit;
+            _snake.OnHitSelf    += HandleFatalHit;
+        }
+
+        private void UnsubscribeSnakeEvents()
+        {
+            if (_snake == null) return;
             _snake.OnAteFood    -= HandleAteFood;
             _snake.OnAtePowerUp -= HandleAtePowerUp;
             _snake.OnHitWall    -= HandleFatalHit;
             _snake.OnHitSelf    -= HandleFatalHit;
         }
 
-        private void Start()
-        {
-            // If GameManager already set a mode before this scene loaded, begin immediately.
-            // Otherwise wait for OnGameStarted event.
-            if (GameManager.Instance.CurrentState == GameState.Playing)
-                BeginSession();
-        }
-
-        private void HandleGameStarted(GameMode mode)
-        {
-            BeginSession();
-        }
+        private void HandleGameStarted(GameMode mode) => BeginSession();
 
         private void BeginSession()
         {
-            // Apply level config (uses defaults if no level set)
+            if (_sessionStarted) return;
+            _sessionStarted = true;
+
+            // Also wire snake events if not done yet (direct-play path)
+            SubscribeSnakeEvents();
+
             if (_levelManager != null && _levelManager.CurrentLevel != null)
                 _levelManager.LoadLevel(_levelManager.CurrentLevel);
 
@@ -83,6 +106,7 @@ namespace NeonSerpent.Core
 
         private void HandleGameOver()
         {
+            _sessionStarted = false;
             _foodSpawner.StopSpawning();
             _powerUpSpawner?.StopSpawning();
             _powerUpManager?.ClearAll();
@@ -100,14 +124,22 @@ namespace NeonSerpent.Core
 
         private void HandleAtePowerUp(Vector2Int pos)
         {
-            // PowerUpSpawner handles the pickup via its own OnCollected subscription.
-            // Nothing extra needed here — just play sound.
             AudioManager.Instance?.PlaySFX(SoundEvent.PowerUpCollect);
         }
 
         private void HandleFatalHit()
         {
-            GameManager.Instance.TriggerGameOver();
+            var gm = GameManager.Instance;
+            if (gm != null)
+                gm.TriggerGameOver();
+            else
+            {
+                // Direct play — just reset
+                _sessionStarted = false;
+                _snake.Initialize(_snakeStartPos);
+                _foodSpawner.StopSpawning();
+                _foodSpawner.StartSpawning();
+            }
         }
     }
 }

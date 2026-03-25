@@ -51,11 +51,6 @@ namespace NeonSerpent.Snake
 
         // --- Lifecycle ---
 
-        private void OnEnable()
-        {
-            StartMovement();
-        }
-
         private void OnDisable()
         {
             StopMovement();
@@ -78,6 +73,7 @@ namespace NeonSerpent.Snake
                 _grid.SetCell(pos, GridCellType.Snake);
             }
             _headPosition = startPos;
+            StartMovement();
         }
 
         /// <summary>
