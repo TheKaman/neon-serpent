@@ -6,9 +6,8 @@ using NeonSerpent.Snake;
 namespace NeonSerpent.Input
 {
     /// <summary>
-    /// Detects swipe gestures using the Unity Input System and translates them
-    /// into 4-directional Vector2Int values for SnakeController.
-    /// Rejects diagonal swipes to prevent accidental direction changes.
+    /// Detects swipe gestures and translates them into 4-directional inputs for SnakeController.
+    /// Uses polling in Update() — works on touch (Android) and mouse (Editor testing).
     /// </summary>
     public class SwipeInputHandler : MonoBehaviour
     {
@@ -16,71 +15,53 @@ namespace NeonSerpent.Input
         [SerializeField] private SnakeController _snake;
 
         [Header("Swipe Settings")]
-        [SerializeField] private float _swipeThreshold = 50f;  // pixels
+        [SerializeField] private float _swipeThreshold = 50f;   // pixels
         [SerializeField] private float _maxSwipeTime   = 0.35f; // seconds
 
         private Vector2 _touchStartPos;
         private float   _touchStartTime;
         private bool    _tracking;
 
-        // Raised for any system that wants to know about swipes (e.g., UI, replay)
         public event Action<Vector2Int> OnSwipeDetected;
-
-        private void OnEnable()
-        {
-            // Use the new Input System's Touchscreen device events
-            if (Touchscreen.current != null)
-            {
-                Touchscreen.current.primaryTouch.press.started   += OnTouchStarted;
-                Touchscreen.current.primaryTouch.press.canceled  += OnTouchEnded;
-            }
-
-            // Editor / mouse fallback
-#if UNITY_EDITOR
-            Mouse.current?.leftButton.WasPressedThisFrame.Equals(true);
-#endif
-        }
-
-        private void OnDisable()
-        {
-            if (Touchscreen.current != null)
-            {
-                Touchscreen.current.primaryTouch.press.started   -= OnTouchStarted;
-                Touchscreen.current.primaryTouch.press.canceled  -= OnTouchEnded;
-            }
-        }
 
         private void Update()
         {
-            // Editor mouse fallback for swipe testing
-#if UNITY_EDITOR
-            if (Mouse.current != null)
+            HandleTouch();
+            HandleMouse();
+        }
+
+        private void HandleTouch()
+        {
+            var screen = Touchscreen.current;
+            if (screen == null) return;
+
+            var touch = screen.primaryTouch;
+
+            if (touch.press.wasPressedThisFrame)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame)
-                {
-                    _touchStartPos  = Mouse.current.position.ReadValue();
-                    _touchStartTime = Time.realtimeSinceStartup;
-                    _tracking = true;
-                }
-                if (Mouse.current.leftButton.wasReleasedThisFrame && _tracking)
-                {
-                    TryEvaluateSwipe(Mouse.current.position.ReadValue());
-                }
+                _touchStartPos  = touch.position.ReadValue();
+                _touchStartTime = Time.realtimeSinceStartup;
+                _tracking       = true;
             }
-#endif
+
+            if (_tracking && touch.press.wasReleasedThisFrame)
+                TryEvaluateSwipe(touch.position.ReadValue());
         }
 
-        private void OnTouchStarted(InputAction.CallbackContext ctx)
+        private void HandleMouse()
         {
-            _touchStartPos  = Touchscreen.current.primaryTouch.position.ReadValue();
-            _touchStartTime = Time.realtimeSinceStartup;
-            _tracking = true;
-        }
+            var mouse = Mouse.current;
+            if (mouse == null) return;
 
-        private void OnTouchEnded(InputAction.CallbackContext ctx)
-        {
-            if (!_tracking) return;
-            TryEvaluateSwipe(Touchscreen.current.primaryTouch.position.ReadValue());
+            if (mouse.leftButton.wasPressedThisFrame)
+            {
+                _touchStartPos  = mouse.position.ReadValue();
+                _touchStartTime = Time.realtimeSinceStartup;
+                _tracking       = true;
+            }
+
+            if (_tracking && mouse.leftButton.wasReleasedThisFrame)
+                TryEvaluateSwipe(mouse.position.ReadValue());
         }
 
         private void TryEvaluateSwipe(Vector2 endPos)
@@ -104,14 +85,13 @@ namespace NeonSerpent.Input
             float absX = Mathf.Abs(delta.x);
             float absY = Mathf.Abs(delta.y);
 
-            // Require clear dominance to reject diagonals
             if (absX > absY * 1.5f)
                 return delta.x > 0 ? Vector2Int.right : Vector2Int.left;
 
             if (absY > absX * 1.5f)
                 return delta.y > 0 ? Vector2Int.up : Vector2Int.down;
 
-            return Vector2Int.zero; // diagonal — rejected
+            return Vector2Int.zero;
         }
     }
 }

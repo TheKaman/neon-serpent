@@ -16,7 +16,6 @@ using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.Universal;
 using NeonSerpent.Core;
 using NeonSerpent.Grid;
 using NeonSerpent.Snake;
@@ -418,9 +417,7 @@ public class NeonSerpentSetup : EditorWindow
         cam.transform.position = new Vector3(9.5f, 9.5f, -10f);
         camGO.AddComponent<AudioListener>();
 
-        // Add URP Camera component if available
-        var urpCamData = camGO.AddComponent<UniversalAdditionalCameraData>();
-        urpCamData.renderPostProcessing = true;
+        // URP camera data is auto-added by Unity when URP is active
 
         // ── Score Manager ──────────────────────────────────
         var scoreMgrGO  = new GameObject("[ScoreManager]");
