@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a8a76e22096dc46ab365ac0fc98af9, type: 3}
+  m_Name: Level_4_5
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Levels.LevelData
+  LevelIndex: 20
+  WorldIndex: 4
+  LevelName: Singularity Core
+  WorldName: Singularity
+  GridWidth: 22
+  GridHeight: 22
+  InitialSpeed: 13
+  SpeedIncrement: 0.45
+  TimeLimit: 60
+  ScoreTarget: 2250
+  WallPositions:
+  - {x: 2, y: 19}
+  - {x: 3, y: 19}
+  - {x: 4, y: 19}
+  - {x: 5, y: 19}
+  - {x: 6, y: 19}
+  - {x: 7, y: 19}
+  - {x: 9, y: 19}
+  - {x: 10, y: 19}
+  - {x: 11, y: 19}
+  - {x: 12, y: 19}
+  - {x: 14, y: 19}
+  - {x: 15, y: 19}
+  - {x: 16, y: 19}
+  - {x: 17, y: 19}
+  - {x: 18, y: 19}
+  - {x: 19, y: 19}
+  - {x: 2, y: 2}
+  - {x: 3, y: 2}
+  - {x: 4, y: 2}
+  - {x: 5, y: 2}
+  - {x: 6, y: 2}
+  - {x: 7, y: 2}
+  - {x: 9, y: 2}
+  - {x: 10, y: 2}
+  - {x: 11, y: 2}
+  - {x: 12, y: 2}
+  - {x: 14, y: 2}
+  - {x: 15, y: 2}
+  - {x: 16, y: 2}
+  - {x: 17, y: 2}
+  - {x: 18, y: 2}
+  - {x: 19, y: 2}
+  - {x: 2, y: 3}
+  - {x: 2, y: 4}
+  - {x: 2, y: 5}
+  - {x: 2, y: 6}
+  - {x: 2, y: 7}
+  - {x: 2, y: 9}
+  - {x: 2, y: 10}
+  - {x: 2, y: 11}
+  - {x: 2, y: 12}
+  - {x: 2, y: 14}
+  - {x: 2, y: 15}
+  - {x: 2, y: 16}
+  - {x: 2, y: 17}
+  - {x: 2, y: 18}
+  - {x: 19, y: 3}
+  - {x: 19, y: 4}
+  - {x: 19, y: 5}
+  - {x: 19, y: 6}
+  - {x: 19, y: 7}
+  - {x: 19, y: 9}
+  - {x: 19, y: 10}
+  - {x: 19, y: 11}
+  - {x: 19, y: 12}
+  - {x: 19, y: 14}
+  - {x: 19, y: 15}
+  - {x: 19, y: 16}
+  - {x: 19, y: 17}
+  - {x: 19, y: 18}
+  - {x: 5, y: 11}
+  - {x: 6, y: 11}
+  - {x: 7, y: 11}
+  - {x: 14, y: 11}
+  - {x: 15, y: 11}
+  - {x: 16, y: 11}
+  - {x: 11, y: 5}
+  - {x: 11, y: 6}
+  - {x: 11, y: 7}
+  - {x: 11, y: 14}
+  - {x: 11, y: 15}
+  - {x: 11, y: 16}
+  - {x: 5, y: 15}
+  - {x: 6, y: 15}
+  - {x: 5, y: 16}
+  - {x: 6, y: 16}
+  - {x: 15, y: 15}
+  - {x: 16, y: 15}
+  - {x: 15, y: 16}
+  - {x: 16, y: 16}
+  - {x: 5, y: 5}
+  - {x: 6, y: 5}
+  - {x: 5, y: 6}
+  - {x: 6, y: 6}
+  - {x: 15, y: 5}
+  - {x: 16, y: 5}
+  - {x: 15, y: 6}
+  - {x: 16, y: 6}
+  - {x: 10, y: 10}
+  - {x: 11, y: 10}
+  - {x: 10, y: 11}
+  AllowedPowerUps: 000000000100000002000000030000000400000005000000
+  Mode: 2
+  StarThreshold1: 1200
+  StarThreshold2: 1800
+  StarThreshold3: 2700
+  NextLevel: {fileID: 0}

@@ -10,6 +10,15 @@ namespace NeonSerpent.Core
     /// </summary>
     public class ApplicationController : MonoBehaviour
     {
+        private void Awake()
+        {
+            // Lock frame rate on device. 60fps on mid/high-end; vsync off so the lock
+            // takes effect. VSync is disabled because enabling it on Android can cause
+            // the frame rate to be tied to the display refresh rate rather than our cap.
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount  = 0;
+        }
+
         private void Start()
         {
             // Bootstrap initializes all singletons via their own Awake().

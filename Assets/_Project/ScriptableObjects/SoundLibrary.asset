@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 099bc9588f91a99438cba732b5efbf68, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Audio.SoundLibrary
+  _entries:
+  - Event: 0
+    Clip: {fileID: 8300000, guid: 1ea03eafb9e1e4143acd2a1a5316ce72, type: 3}
+  - Event: 1
+    Clip: {fileID: 8300000, guid: 5a27c1f68bf9874429470ec3fb002812, type: 3}
+  - Event: 2
+    Clip: {fileID: 8300000, guid: de0459c2c957f0c48be6cd03081ffbeb, type: 3}
+  - Event: 3
+    Clip: {fileID: 8300000, guid: c371870ac4eee2948af2a8f0717ae855, type: 3}
+  - Event: 4
+    Clip: {fileID: 8300000, guid: c7e2f2053e9fe75428561408c5e85527, type: 3}
+  - Event: 5
+    Clip: {fileID: 8300000, guid: 82850e9e06016a640af3007052c6cedf, type: 3}
+  - Event: 6
+    Clip: {fileID: 8300000, guid: bd3d5e473dfc30e489fc4c534d2a7334, type: 3}
+  - Event: 7
+    Clip: {fileID: 8300000, guid: 5ebb7722902e5784287d96be22371662, type: 3}
+  - Event: 8
+    Clip: {fileID: 8300000, guid: cc498a47bfe0ee7419d67b4bb9f2d321, type: 3}
+  - Event: 9
+    Clip: {fileID: 8300000, guid: e9b42596998c96d4aac4e65efc2315d8, type: 3}
+  - Event: 10
+    Clip: {fileID: 8300000, guid: 072250d06aca17040b4ea4c250975255, type: 3}

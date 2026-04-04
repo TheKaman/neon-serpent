@@ -21,8 +21,7 @@ namespace NeonSerpent.Levels
         [Header("Level to Load")]
         [SerializeField] private LevelData _levelData;
 
-        private float _elapsedTime;
-        private bool  _active;
+        private bool _active;
 
         private Coroutine _timerCoroutine;
 
@@ -34,14 +33,20 @@ namespace NeonSerpent.Levels
         public void LoadLevel(LevelData data)
         {
             _levelData = data;
-            _grid.InitializeGrid(data.GridWidth, data.GridHeight);
-            _grid.SetWalls(data.WallPositions);
 
-            // TODO: pass speed values to SnakeController once exposed via Initialize()
-            _elapsedTime = 0f;
-            _active      = true;
+            if (_grid != null)
+            {
+                _grid.InitializeGrid(data.GridWidth, data.GridHeight);
+                Camera.main?.GetComponent<CameraFit>()?.FitToGrid(data.GridWidth, data.GridHeight);
+                // WallPositions is nullable when no walls are assigned in the Inspector
+                if (data.WallPositions != null && data.WallPositions.Length > 0)
+                    _grid.SetWalls(data.WallPositions);
+            }
 
-            _score.ResetScore();
+            _active = true;
+
+            if (_score != null)
+                _score.ResetScore();
 
             if (data.TimeLimit > 0)
             {
@@ -49,27 +54,43 @@ namespace NeonSerpent.Levels
                 _timerCoroutine = StartCoroutine(TimerRoutine(data.TimeLimit));
             }
 
-            // Subscribe to score for score-target win condition
-            _score.OnScoreChanged += CheckScoreTarget;
+            // Unsubscribe first to prevent double-registration on restart
+            if (_score != null)
+            {
+                _score.OnScoreChanged -= CheckScoreTarget;
+                _score.OnScoreChanged += CheckScoreTarget;
+            }
         }
 
-        private void OnDisable()
+        /// <summary>
+        /// Stop the active timer and unsubscribe score tracking. Call on game over or
+        /// level complete so the timer does not keep running between sessions.
+        /// </summary>
+        public void StopLevel()
         {
+            _active = false;
             if (_timerCoroutine != null)
             {
                 StopCoroutine(_timerCoroutine);
                 _timerCoroutine = null;
             }
-            _score.OnScoreChanged -= CheckScoreTarget;
+            if (_score != null)
+                _score.OnScoreChanged -= CheckScoreTarget;
         }
 
-        private void CheckScoreTarget(int newScore)
+        private void OnDisable()
+        {
+            StopLevel();
+        }
+
+        private void CheckScoreTarget(long newScore)
         {
             if (!_active) return;
             if (_levelData.ScoreTarget > 0 && newScore >= _levelData.ScoreTarget)
             {
                 _active = false;
-                GameManager.Instance.TriggerLevelComplete();
+                if (GameManager.Instance != null)
+                    GameManager.Instance.TriggerLevelComplete();
             }
         }
 
@@ -78,14 +99,15 @@ namespace NeonSerpent.Levels
             float remaining = timeLimit;
             while (remaining > 0f && _active)
             {
-                remaining -= Time.deltaTime;
+                remaining -= Mathf.Min(Time.deltaTime, 0.1f); // cap spike so Android resume cannot expire the timer instantly
                 OnTimerUpdated?.Invoke(Mathf.Max(0f, remaining));
                 yield return null;
             }
             if (_active)
             {
                 _active = false;
-                GameManager.Instance.TriggerGameOver();
+                if (GameManager.Instance != null)
+                    GameManager.Instance.TriggerGameOver();
             }
         }
     }

@@ -69,10 +69,15 @@ namespace NeonSerpent.Grid
         /// <summary>Clear a cell back to Empty.</summary>
         public void ClearCell(Vector2Int pos) => SetCell(pos, GridCellType.Empty);
 
-        /// <summary>Returns a random cell that is currently Empty. Returns Vector2Int(-1,-1) if none found.</summary>
+        /// <summary>
+        /// Returns a random empty cell. Uses random probing first for O(1) average cost on
+        /// sparse grids. Falls back to a full linear sweep when the grid is nearly full so
+        /// spawners never softlock on a large snake.
+        /// Returns Vector2Int(-1,-1) only when every cell is occupied.
+        /// </summary>
         public Vector2Int GetRandomEmptyCell()
         {
-            // Simple random search — fine for grid sizes under 50x50
+            // Random probe pass — fast on typical grids
             int attempts = _width * _height;
             while (attempts-- > 0)
             {
@@ -80,7 +85,19 @@ namespace NeonSerpent.Grid
                 if (_cells[pos.x, pos.y].Type == GridCellType.Empty)
                     return pos;
             }
-            Debug.LogWarning("[GridSystem] No empty cell found — grid may be nearly full.");
+
+            // Random probing exhausted — do a deterministic linear sweep so we never miss
+            // an empty cell on a nearly-full grid (prevents food-spawn softlock).
+            for (int x = 0; x < _width; x++)
+            {
+                for (int y = 0; y < _height; y++)
+                {
+                    if (_cells[x, y].Type == GridCellType.Empty)
+                        return new Vector2Int(x, y);
+                }
+            }
+
+            Debug.LogWarning("[GridSystem] GetRandomEmptyCell: no empty cell found — grid is completely full.");
             return new Vector2Int(-1, -1);
         }
 

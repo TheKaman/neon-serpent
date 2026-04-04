@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a8a76e22096dc46ab365ac0fc98af9, type: 3}
+  m_Name: Level_1_2
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Levels.LevelData
+  LevelIndex: 2
+  WorldIndex: 1
+  LevelName: Getting Started
+  WorldName: Neon Streets
+  GridWidth: 16
+  GridHeight: 16
+  InitialSpeed: 5.5
+  SpeedIncrement: 0.15
+  TimeLimit: 0
+  ScoreTarget: 112
+  WallPositions: []
+  AllowedPowerUps: 0000000001000000
+  Mode: 2
+  StarThreshold1: 38
+  StarThreshold2: 75
+  StarThreshold3: 150
+  NextLevel: {fileID: 11400000, guid: f5a8df99d961e2947916fff87956b616, type: 2}

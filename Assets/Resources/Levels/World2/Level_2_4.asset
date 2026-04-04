@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a8a76e22096dc46ab365ac0fc98af9, type: 3}
+  m_Name: Level_2_4
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Levels.LevelData
+  LevelIndex: 9
+  WorldIndex: 2
+  LevelName: Quad Sectors
+  WorldName: Circuit Board
+  GridWidth: 18
+  GridHeight: 18
+  InitialSpeed: 8.5
+  SpeedIncrement: 0.3
+  TimeLimit: 85
+  ScoreTarget: 500
+  WallPositions:
+  - {x: 2, y: 13}
+  - {x: 3, y: 13}
+  - {x: 4, y: 13}
+  - {x: 5, y: 13}
+  - {x: 12, y: 13}
+  - {x: 13, y: 13}
+  - {x: 14, y: 13}
+  - {x: 15, y: 13}
+  - {x: 4, y: 2}
+  - {x: 4, y: 3}
+  - {x: 4, y: 4}
+  - {x: 4, y: 5}
+  - {x: 13, y: 2}
+  - {x: 13, y: 3}
+  - {x: 13, y: 4}
+  - {x: 13, y: 5}
+  - {x: 8, y: 9}
+  - {x: 9, y: 9}
+  - {x: 9, y: 8}
+  - {x: 9, y: 10}
+  AllowedPowerUps: 0000000001000000020000000300000004000000
+  Mode: 2
+  StarThreshold1: 188
+  StarThreshold2: 375
+  StarThreshold3: 625
+  NextLevel: {fileID: 11400000, guid: 713cb2edd48318e4daf7fc7ac8defc52, type: 2}

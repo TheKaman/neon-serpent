@@ -24,11 +24,27 @@ namespace NeonSerpent.Input
 
         public event Action<Vector2Int> OnSwipeDetected;
 
+        /// <summary>
+        /// Fired when the Android back button (or Escape key) is pressed.
+        /// PauseUI subscribes to this to toggle the pause menu.
+        /// </summary>
+        public event Action OnBackPressed;
+
         private void Update()
         {
+            HandleBackButton();
             HandleKeyboard();
             HandleMouse();
             HandleTouch();
+        }
+
+        // ── Back button / Escape ──────────────────────────────────────────────
+        // Keyboard.escapeKey maps to the Android back button on device via the new Input System.
+        private void HandleBackButton()
+        {
+            var kb = Keyboard.current;
+            if (kb != null && kb.escapeKey.wasPressedThisFrame)
+                OnBackPressed?.Invoke();
         }
 
         // ── Keyboard (works in Editor and on desktop builds) ──────────────────
@@ -47,7 +63,10 @@ namespace NeonSerpent.Input
                 Send(Vector2Int.right);
         }
 
-        // ── Mouse drag (Editor testing) ───────────────────────────────────────
+        // ── Mouse drag (Editor testing only) ─────────────────────────────────
+        // Guarded to Editor builds so mouse and touch don't share the same
+        // _tracking/_touchStartPos state on device, preventing cross-device swipe ghosts.
+#if UNITY_EDITOR
         private void HandleMouse()
         {
             var mouse = Mouse.current;
@@ -63,6 +82,9 @@ namespace NeonSerpent.Input
             if (_tracking && mouse.leftButton.wasReleasedThisFrame)
                 TryEvaluateSwipe(mouse.position.ReadValue());
         }
+#else
+        private void HandleMouse() { }
+#endif
 
         // ── Touch (Android device) ────────────────────────────────────────────
         private void HandleTouch()
@@ -105,16 +127,13 @@ namespace NeonSerpent.Input
 
         private Vector2Int GetDominantAxis(Vector2 delta)
         {
-            float absX = Mathf.Abs(delta.x);
-            float absY = Mathf.Abs(delta.y);
-
-            if (absX > absY * 1.5f)
+            // Always resolve to the larger axis — no dead zone.
+            // The _swipeThreshold minimum distance already rejects accidental taps,
+            // so a 45° swipe should always produce a direction, not be dropped.
+            if (Mathf.Abs(delta.x) >= Mathf.Abs(delta.y))
                 return delta.x > 0 ? Vector2Int.right : Vector2Int.left;
 
-            if (absY > absX * 1.5f)
-                return delta.y > 0 ? Vector2Int.up : Vector2Int.down;
-
-            return Vector2Int.zero;
+            return delta.y > 0 ? Vector2Int.up : Vector2Int.down;
         }
     }
 }

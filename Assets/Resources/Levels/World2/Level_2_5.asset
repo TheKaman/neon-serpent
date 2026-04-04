@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a8a76e22096dc46ab365ac0fc98af9, type: 3}
+  m_Name: Level_2_5
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Levels.LevelData
+  LevelIndex: 10
+  WorldIndex: 2
+  LevelName: Circuit Overload
+  WorldName: Circuit Board
+  GridWidth: 18
+  GridHeight: 18
+  InitialSpeed: 9
+  SpeedIncrement: 0.35
+  TimeLimit: 70
+  ScoreTarget: 600
+  WallPositions:
+  - {x: 1, y: 6}
+  - {x: 2, y: 6}
+  - {x: 3, y: 6}
+  - {x: 4, y: 6}
+  - {x: 5, y: 6}
+  - {x: 7, y: 6}
+  - {x: 8, y: 6}
+  - {x: 9, y: 6}
+  - {x: 10, y: 6}
+  - {x: 11, y: 6}
+  - {x: 6, y: 12}
+  - {x: 7, y: 12}
+  - {x: 8, y: 12}
+  - {x: 9, y: 12}
+  - {x: 10, y: 12}
+  - {x: 12, y: 12}
+  - {x: 13, y: 12}
+  - {x: 14, y: 12}
+  - {x: 15, y: 12}
+  - {x: 16, y: 12}
+  - {x: 6, y: 1}
+  - {x: 6, y: 2}
+  - {x: 6, y: 3}
+  - {x: 6, y: 4}
+  - {x: 6, y: 5}
+  - {x: 12, y: 7}
+  - {x: 12, y: 8}
+  - {x: 12, y: 9}
+  - {x: 12, y: 10}
+  - {x: 12, y: 11}
+  AllowedPowerUps: 0000000001000000020000000300000004000000
+  Mode: 2
+  StarThreshold1: 225
+  StarThreshold2: 450
+  StarThreshold3: 750
+  NextLevel: {fileID: 11400000, guid: 19f84a16ba3a84a4eaba3e2798e3a349, type: 2}

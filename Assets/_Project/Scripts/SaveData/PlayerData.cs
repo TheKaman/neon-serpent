@@ -12,7 +12,8 @@ namespace NeonSerpent.SaveData
     [Serializable]
     public class PlayerData
     {
-        public bool   isAdFree          = false;
+        public bool   isAdFree           = false;
+        public bool   vibrationEnabled  = true;  // haptic feedback; on by default
         public int    coins             = 0;
         public string equippedSkinId    = "default";
         public List<string> unlockedSkinIds = new List<string> { "default" };

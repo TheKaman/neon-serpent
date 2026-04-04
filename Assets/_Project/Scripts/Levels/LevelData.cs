@@ -13,6 +13,7 @@ namespace NeonSerpent.Levels
     {
         [Header("Identity")]
         public int    LevelIndex;
+        public int    WorldIndex;
         public string LevelName;
         public string WorldName;
 
@@ -44,5 +45,16 @@ namespace NeonSerpent.Levels
 
         [Header("Campaign Progression")]
         public LevelData NextLevel; // null = final level
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (StarThreshold1 == 0 && StarThreshold2 == 0 && StarThreshold3 == 0)
+            {
+                Debug.LogWarning($"[LevelData] '{name}': all star thresholds are zero — " +
+                    "players will receive 3 stars for any score. Set StarThreshold1/2/3 in the Inspector.");
+            }
+        }
+#endif
     }
 }

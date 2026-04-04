@@ -4,9 +4,9 @@ using NeonSerpent.Utilities;
 namespace NeonSerpent.Grid
 {
     /// <summary>
-    /// Renders the neon grid background as a procedural mesh of line quads.
-    /// Attach to a child GameObject of the GridSystem with MeshFilter + MeshRenderer.
-    /// The material color controls the grid line color.
+    /// Renders a neon border around the play area. No internal grid lines —
+    /// just the four edges forming the snake's arena boundary.
+    /// The border color pulses slowly between two cyan shades for a neon glow effect.
     /// </summary>
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class NeonGridRenderer : MonoBehaviour
@@ -15,11 +15,14 @@ namespace NeonSerpent.Grid
         [SerializeField] private GridSystem _grid;
 
         [Header("Appearance")]
-        [SerializeField] private float _lineWidth = 0.04f;
-        [SerializeField] private Color _lineColor = new Color(0.1f, 0.25f, 0.12f, 1f);
+        [SerializeField] private float _lineWidth = 0.08f;
+
+        private static readonly Color BORDER_COLOR_A = new Color(0f, 1f,  1f,  1f);   // bright cyan
+        private static readonly Color BORDER_COLOR_B = new Color(0f, 0.5f, 0.8f, 0.7f); // dim cyan
 
         private MeshFilter   _meshFilter;
         private MeshRenderer _meshRenderer;
+        private Material     _material;
 
         private void Awake()
         {
@@ -27,61 +30,116 @@ namespace NeonSerpent.Grid
             _meshRenderer = GetComponent<MeshRenderer>();
         }
 
+        private void OnDestroy()
+        {
+            if (_material != null) Destroy(_material);
+        }
+
         private void Start()
         {
-            BuildGridMesh();
+            BuildBorderMesh();
             CenterCamera();
         }
 
-        /// <summary>Rebuild the grid mesh (call after grid dimensions change).</summary>
+        private void Update()
+        {
+            if (_material == null) return;
+
+            float t = (Mathf.Sin(Time.time * 1.2f) + 1f) * 0.5f;
+            _material.color = Color.Lerp(BORDER_COLOR_B, BORDER_COLOR_A, t);
+        }
+
+        /// <summary>Rebuild the border mesh (call after grid dimensions change).</summary>
         public void BuildGridMesh()
         {
-            int w = _grid.Width;
-            int h = _grid.Height;
+            BuildBorderMesh();
+        }
 
-            int lineCount = (w + 1) + (h + 1);
-            var vertices  = new Vector3[lineCount * 4];
-            var triangles = new int[lineCount * 6];
-            var uvs       = new Vector2[lineCount * 4];
+        private void BuildBorderMesh()
+        {
+            if (_grid == null) return;
+
+            int   w      = _grid.Width;
+            int   h      = _grid.Height;
+            float cell   = Constants.CELL_SIZE;
+            float half   = _lineWidth * 0.5f;
+            float halfCell = cell * 0.5f;
+
+            // Cell centers run from 0 to (w-1)*cell and 0 to (h-1)*cell.
+            // Each sprite is cell-sized, so the play area spans:
+            //   x: [-halfCell, (w-1)*cell + halfCell]  →  [-0.5, 19.5] for a 20-wide grid
+            //   y: [-halfCell, (h-1)*cell + halfCell]
+            // Border edges are centered on these outer faces so all 4 sides are equidistant
+            // from the snake cells.
+            float xMin = -halfCell;               // center of left border
+            float xMax =  (w - 1) * cell + halfCell; // center of right border
+            float yMin = -halfCell;               // center of bottom border
+            float yMax =  (h - 1) * cell + halfCell; // center of top border
+
+            // 4 quads, each 4 verts + 6 tris
+            var verts = new Vector3[16];
+            var tris  = new int[24];
+            var uvs   = new Vector2[16];
 
             int vi = 0, ti = 0;
-            float half   = _lineWidth * 0.5f;
-            float totalW = w * Constants.CELL_SIZE;
-            float totalH = h * Constants.CELL_SIZE;
 
-            for (int x = 0; x <= w; x++)
-            {
-                float px = x * Constants.CELL_SIZE - half;
-                vertices[vi + 0] = new Vector3(px,              -half,         0);
-                vertices[vi + 1] = new Vector3(px + _lineWidth, -half,         0);
-                vertices[vi + 2] = new Vector3(px,              totalH + half, 0);
-                vertices[vi + 3] = new Vector3(px + _lineWidth, totalH + half, 0);
-                AddQuadTris(triangles, ref ti, vi);
-                vi += 4;
-            }
+            // Bottom edge — centered at y=yMin
+            AddHorizontalQuad(verts, tris, uvs, ref vi, ref ti,
+                xMin - half, xMax + half, yMin - half, _lineWidth);
 
-            for (int y = 0; y <= h; y++)
-            {
-                float py = y * Constants.CELL_SIZE - half;
-                vertices[vi + 0] = new Vector3(-half,         py,              0);
-                vertices[vi + 1] = new Vector3(totalW + half, py,              0);
-                vertices[vi + 2] = new Vector3(-half,         py + _lineWidth, 0);
-                vertices[vi + 3] = new Vector3(totalW + half, py + _lineWidth, 0);
-                AddQuadTris(triangles, ref ti, vi);
-                vi += 4;
-            }
+            // Top edge — centered at y=yMax
+            AddHorizontalQuad(verts, tris, uvs, ref vi, ref ti,
+                xMin - half, xMax + half, yMax - half, _lineWidth);
 
-            for (int i = 0; i < uvs.Length; i++) uvs[i] = Vector2.one;
+            // Left edge — centered at x=xMin
+            AddVerticalQuad(verts, tris, uvs, ref vi, ref ti,
+                xMin - half, _lineWidth, yMin - half, yMax + half);
 
-            var mesh       = new Mesh { name = "NeonGrid" };
-            mesh.vertices  = vertices;
-            mesh.triangles = triangles;
+            // Right edge — centered at x=xMax
+            AddVerticalQuad(verts, tris, uvs, ref vi, ref ti,
+                xMax - half, _lineWidth, yMin - half, yMax + half);
+
+            var mesh       = new Mesh { name = "NeonBorder" };
+            mesh.vertices  = verts;
+            mesh.triangles = tris;
             mesh.uv        = uvs;
             mesh.RecalculateBounds();
             _meshFilter.mesh = mesh;
 
-            if (_meshRenderer.sharedMaterial != null)
-                _meshRenderer.sharedMaterial.color = _lineColor;
+            if (_material == null)
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Unlit")
+                          ?? Shader.Find("Sprites/Default")
+                          ?? Shader.Find("Hidden/InternalErrorShader");
+                _material = new Material(shader);
+            }
+
+            _material.color         = BORDER_COLOR_A;
+            _meshRenderer.material  = _material;
+        }
+
+        private void AddHorizontalQuad(Vector3[] v, int[] t, Vector2[] uv,
+            ref int vi, ref int ti, float x0, float x1, float y0, float lineW)
+        {
+            v[vi]   = new Vector3(x0, y0,         0);
+            v[vi+1] = new Vector3(x1, y0,         0);
+            v[vi+2] = new Vector3(x0, y0 + lineW, 0);
+            v[vi+3] = new Vector3(x1, y0 + lineW, 0);
+            AddQuadTris(t, ref ti, vi);
+            for (int i = vi; i < vi + 4; i++) uv[i] = Vector2.one;
+            vi += 4;
+        }
+
+        private void AddVerticalQuad(Vector3[] v, int[] t, Vector2[] uv,
+            ref int vi, ref int ti, float x0, float lineW, float y0, float y1)
+        {
+            v[vi]   = new Vector3(x0,         y0, 0);
+            v[vi+1] = new Vector3(x0 + lineW, y0, 0);
+            v[vi+2] = new Vector3(x0,         y1, 0);
+            v[vi+3] = new Vector3(x0 + lineW, y1, 0);
+            AddQuadTris(t, ref ti, vi);
+            for (int i = vi; i < vi + 4; i++) uv[i] = Vector2.one;
+            vi += 4;
         }
 
         private void AddQuadTris(int[] tris, ref int ti, int vi)

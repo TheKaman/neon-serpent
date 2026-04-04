@@ -10,8 +10,17 @@ namespace NeonSerpent.PowerUps
     /// </summary>
     public abstract class PowerUpEffect
     {
-        public PowerUpType Type     { get; protected set; }
-        public float       Duration { get; protected set; }
+        public PowerUpType Type          { get; protected set; }
+        public float       Duration      { get; protected set; }
+
+        /// <summary>
+        /// Seconds remaining for this timed effect. Updated by PowerUpManager each frame.
+        /// Zero for instant effects.
+        /// </summary>
+        public float RemainingTime { get; private set; }
+
+        /// <summary>Called by PowerUpManager to keep RemainingTime in sync with the timer coroutine.</summary>
+        public void SetRemainingTime(float seconds) => RemainingTime = seconds;
 
         /// <summary>Apply this effect to the snake and/or score system.</summary>
         public abstract void Apply(SnakeController snake, ScoreManager score);

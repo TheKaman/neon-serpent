@@ -15,6 +15,9 @@ namespace NeonSerpent.Core
         public GameState CurrentState { get; private set; } = GameState.Boot;
         public GameMode  CurrentMode  { get; private set; } = GameMode.ClassicEndless;
 
+        /// <summary>The campaign level the player selected on the level select screen.</summary>
+        public NeonSerpent.Levels.LevelData SelectedLevel { get; set; }
+
         // --- Events (subscribe to these, never call state-change methods from other systems) ---
         public event Action<GameState> OnStateChanged;
         public event Action<GameMode>  OnGameStarted;

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a8a76e22096dc46ab365ac0fc98af9, type: 3}
+  m_Name: Level_2_3
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Levels.LevelData
+  LevelIndex: 8
+  WorldIndex: 2
+  LevelName: Cross Circuit
+  WorldName: Circuit Board
+  GridWidth: 18
+  GridHeight: 18
+  InitialSpeed: 8
+  SpeedIncrement: 0.3
+  TimeLimit: 100
+  ScoreTarget: 400
+  WallPositions:
+  - {x: 2, y: 9}
+  - {x: 3, y: 9}
+  - {x: 4, y: 9}
+  - {x: 5, y: 9}
+  - {x: 6, y: 9}
+  - {x: 11, y: 9}
+  - {x: 12, y: 9}
+  - {x: 13, y: 9}
+  - {x: 14, y: 9}
+  - {x: 15, y: 9}
+  - {x: 9, y: 2}
+  - {x: 9, y: 3}
+  - {x: 9, y: 4}
+  - {x: 9, y: 5}
+  - {x: 9, y: 6}
+  - {x: 9, y: 11}
+  - {x: 9, y: 12}
+  - {x: 9, y: 13}
+  - {x: 9, y: 14}
+  - {x: 9, y: 15}
+  AllowedPowerUps: 0000000001000000020000000300000004000000
+  Mode: 2
+  StarThreshold1: 150
+  StarThreshold2: 300
+  StarThreshold3: 500
+  NextLevel: {fileID: 11400000, guid: 345e4c3d6cbaa7c4eb1c3784796df191, type: 2}

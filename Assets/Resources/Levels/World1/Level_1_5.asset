@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a8a76e22096dc46ab365ac0fc98af9, type: 3}
+  m_Name: Level_1_5
+  m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.Levels.LevelData
+  LevelIndex: 5
+  WorldIndex: 1
+  LevelName: Street King
+  WorldName: Neon Streets
+  GridWidth: 16
+  GridHeight: 16
+  InitialSpeed: 7
+  SpeedIncrement: 0.3
+  TimeLimit: 60
+  ScoreTarget: 225
+  WallPositions:
+  - {x: 4, y: 14}
+  - {x: 5, y: 14}
+  - {x: 10, y: 14}
+  - {x: 11, y: 14}
+  - {x: 4, y: 1}
+  - {x: 5, y: 1}
+  - {x: 10, y: 1}
+  - {x: 11, y: 1}
+  - {x: 1, y: 4}
+  - {x: 1, y: 5}
+  - {x: 1, y: 10}
+  - {x: 1, y: 11}
+  - {x: 14, y: 4}
+  - {x: 14, y: 5}
+  - {x: 14, y: 10}
+  - {x: 14, y: 11}
+  - {x: 4, y: 4}
+  - {x: 5, y: 4}
+  - {x: 10, y: 4}
+  - {x: 11, y: 4}
+  - {x: 4, y: 11}
+  - {x: 5, y: 11}
+  - {x: 10, y: 11}
+  - {x: 11, y: 11}
+  AllowedPowerUps: 0000000001000000020000000300000004000000
+  Mode: 2
+  StarThreshold1: 75
+  StarThreshold2: 150
+  StarThreshold3: 300
+  NextLevel: {fileID: 11400000, guid: d308ea8591a85cf43bd79eaed6156abe, type: 2}

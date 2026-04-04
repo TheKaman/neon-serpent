@@ -11,8 +11,8 @@ namespace NeonSerpent.Utilities
         public const float CELL_SIZE         = 1f;
 
         // --- Snake ---
-        public const float DEFAULT_SPEED       = 8f;   // cells per second
-        public const float SPEED_INCREMENT     = 0.3f; // added per food eaten
+        public const float DEFAULT_SPEED       = 4f;   // cells per second
+        public const float SPEED_INCREMENT     = 0.25f; // added per food eaten
         public const float MAX_SPEED           = 20f;
 
         // --- Power-Ups ---
@@ -24,11 +24,15 @@ namespace NeonSerpent.Utilities
         public const int SCORE_BONUS_FOOD    = 50;
         public const int COMBO_THRESHOLD     = 5;   // eats in a row for combo bonus
 
+        // --- Coins ---
+        public const int COINS_NORMAL_FOOD   = 1;
+        public const int COINS_BONUS_FOOD    = 5;
+        public const int COINS_COMBO_BONUS   = 2;   // awarded per combo milestone
+
         // --- Google Play Games Services leaderboard IDs ---
-        // TODO: Replace with real IDs from Google Play Console after app is registered
-        public const string LEADERBOARD_CLASSIC    = "LEADERBOARD_CLASSIC_PLACEHOLDER";
-        public const string LEADERBOARD_TIME_ATTACK = "LEADERBOARD_TIMEATTACK_PLACEHOLDER";
-        public const string LEADERBOARD_CAMPAIGN   = "LEADERBOARD_CAMPAIGN_PLACEHOLDER";
+        public const string LEADERBOARD_CLASSIC     = "CgkIm4mcgZEWAIQAA";
+        public const string LEADERBOARD_TIME_ATTACK = "CgkIm4mcgZEWAIQAQ";
+        public const string LEADERBOARD_CAMPAIGN    = "CgkIm4mcgZEWAIQAg";
 
         // --- IAP Product IDs ---
         public const string IAP_REMOVE_ADS   = "remove_ads";
@@ -40,11 +44,12 @@ namespace NeonSerpent.Utilities
         public const string SAVE_FILE_NAME = "player_data.json";
 
         // --- Scenes ---
-        public const string SCENE_BOOTSTRAP  = "Bootstrap";
-        public const string SCENE_MAIN_MENU  = "MainMenu";
-        public const string SCENE_GAME       = "Game";
-        public const string SCENE_LEADERBOARD = "Leaderboard";
-        public const string SCENE_SHOP       = "Shop";
-        public const string SCENE_SETTINGS   = "Settings";
+        public const string SCENE_BOOTSTRAP    = "Bootstrap";
+        public const string SCENE_MAIN_MENU    = "MainMenu";
+        public const string SCENE_GAME         = "Game";
+        public const string SCENE_LEVEL_SELECT = "LevelSelect";
+        public const string SCENE_LEADERBOARD  = "Leaderboard";
+        public const string SCENE_SHOP         = "Shop";
+        public const string SCENE_SETTINGS     = "Settings";
     }
 }

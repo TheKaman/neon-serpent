@@ -1,53 +1,140 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using NeonSerpent.Core;
+using NeonSerpent.PowerUps;
 using NeonSerpent.Scoring;
 using NeonSerpent.Levels;
+using NeonSerpent.SaveData;
+using NeonSerpent.Snake;
+using NeonSerpent.Utilities;
 
 namespace NeonSerpent.UI
 {
     /// <summary>
-    /// In-game HUD: score display and timer.
-    /// Subscribes to ScoreManager and (optionally) LevelManager events.
+    /// In-game HUD: score, personal best, coin display, timer, shield indicator, and frenzy indicator.
+    /// Subscribes to ScoreManager, SaveManager, LevelManager, PowerUpManager, and GameManager events.
     /// </summary>
     public class HUD : MonoBehaviour
     {
         [Header("Score")]
-        [SerializeField] private Text _scoreText;
-        [SerializeField] private Text _multiplierText;
+        [SerializeField] private TMP_Text _scoreText;
+        [SerializeField] private TMP_Text _multiplierText;
+        [SerializeField] private TMP_Text _personalBestText;
+
+        [Header("Coins")]
+        [SerializeField] private TMP_Text _coinText;
 
         [Header("Timer (Time Attack / Campaign only)")]
         [SerializeField] private GameObject _timerPanel;
-        [SerializeField] private Text       _timerText;
+        [SerializeField] private TMP_Text   _timerText;
+
+        [Header("Status Indicators")]
+        [SerializeField] private GameObject _shieldIndicator;  // shown while Shield power-up is active
+        [SerializeField] private GameObject _frenzyIndicator;  // shown when Frenzy Mode is active (Classic max speed)
+
+        [Header("Pause")]
+        [SerializeField] private Button  _pauseButton;
+        [SerializeField] private PauseUI _pauseUI;
 
         [Header("References")]
-        [SerializeField] private ScoreManager _scoreManager;
-        [SerializeField] private LevelManager _levelManager;
+        [SerializeField] private ScoreManager  _scoreManager;
+        [SerializeField] private LevelManager  _levelManager;
+        [SerializeField] private PowerUpManager _powerUpManager;
+        [SerializeField] private SnakeController _snake;
+
+        private void Awake()
+        {
+            _pauseButton?.onClick.AddListener(() => _pauseUI?.Toggle());
+        }
 
         private void OnEnable()
         {
-            _scoreManager.OnScoreChanged += UpdateScore;
+            if (_scoreManager != null)
+            {
+                _scoreManager.OnScoreChanged  += UpdateScore;
+                _scoreManager.OnFrenzyChanged += HandleFrenzyChanged;
+            }
             if (_levelManager != null)
                 _levelManager.OnTimerUpdated += UpdateTimer;
+            if (SaveManager.Instance != null)
+                SaveManager.Instance.OnCoinsChanged += UpdateCoins;
+            if (GameManager.Instance != null)
+                GameManager.Instance.OnGameStarted += HandleGameStarted;
+            if (_powerUpManager != null)
+            {
+                _powerUpManager.OnEffectActivated   += HandleEffectActivated;
+                _powerUpManager.OnEffectDeactivated += HandleEffectDeactivated;
+            }
+            if (_snake != null)
+                _snake.OnShieldAbsorbed += HandleShieldAbsorbed;
         }
 
         private void OnDisable()
         {
-            _scoreManager.OnScoreChanged -= UpdateScore;
+            if (_scoreManager != null)
+            {
+                _scoreManager.OnScoreChanged  -= UpdateScore;
+                _scoreManager.OnFrenzyChanged -= HandleFrenzyChanged;
+            }
             if (_levelManager != null)
                 _levelManager.OnTimerUpdated -= UpdateTimer;
+            if (SaveManager.Instance != null)
+                SaveManager.Instance.OnCoinsChanged -= UpdateCoins;
+            if (GameManager.Instance != null)
+                GameManager.Instance.OnGameStarted -= HandleGameStarted;
+            if (_powerUpManager != null)
+            {
+                _powerUpManager.OnEffectActivated   -= HandleEffectActivated;
+                _powerUpManager.OnEffectDeactivated -= HandleEffectDeactivated;
+            }
+            if (_snake != null)
+                _snake.OnShieldAbsorbed -= HandleShieldAbsorbed;
         }
 
         private void Start()
         {
             UpdateScore(0);
-            bool hasTimer = _levelManager?.CurrentLevel?.TimeLimit > 0;
-            if (_timerPanel != null) _timerPanel.SetActive(hasTimer);
+
+            // LevelManager.LoadLevel has not been called yet at this point — CurrentLevel is null.
+            // Hide the timer panel by default; UpdateTimer() will reveal it when the first tick fires.
+            if (_timerPanel != null) _timerPanel.SetActive(false);
+
+            // Status indicators off by default
+            if (_shieldIndicator != null) _shieldIndicator.SetActive(false);
+            if (_frenzyIndicator  != null) _frenzyIndicator.SetActive(false);
+
+            // Show current coin total on scene load
+            int startingCoins = SaveManager.Instance != null ? SaveManager.Instance.Data.coins : 0;
+            UpdateCoins(startingCoins);
+
+            // Show personal best for the active mode
+            GameMode mode = GameManager.Instance != null
+                ? GameManager.Instance.CurrentMode
+                : GameMode.ClassicEndless;
+            UpdatePersonalBest(mode);
         }
 
-        private void UpdateScore(int score)
+        // ── GameManager events ────────────────────────────────────────────────
+
+        /// <summary>
+        /// Resets the timer panel and status indicators at the start of each new game,
+        /// and refreshes the personal best for the new mode.
+        /// </summary>
+        private void HandleGameStarted(GameMode mode)
         {
-            if (_scoreText      != null) _scoreText.text      = score.ToString("N0");
-            if (_multiplierText != null)
+            if (_timerPanel      != null) _timerPanel.SetActive(false);
+            if (_shieldIndicator != null) _shieldIndicator.SetActive(false);
+            if (_frenzyIndicator != null) _frenzyIndicator.SetActive(false);
+            UpdatePersonalBest(mode);
+        }
+
+        // ── Score events ──────────────────────────────────────────────────────
+
+        private void UpdateScore(long score)
+        {
+            if (_scoreText != null) _scoreText.text = score.ToString("N0");
+            if (_multiplierText != null && _scoreManager != null)
             {
                 int mult = _scoreManager.Multiplier;
                 _multiplierText.text    = mult > 1 ? $"x{mult}" : "";
@@ -55,12 +142,77 @@ namespace NeonSerpent.UI
             }
         }
 
+        private void HandleFrenzyChanged(bool active)
+        {
+            if (_frenzyIndicator != null) _frenzyIndicator.SetActive(active);
+        }
+
+        // ── Personal best ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Reads the player's all-time best score for the current mode from SaveManager
+        /// and updates the personal best label. Displayed during play to create
+        /// run-to-run pressure — the most impactful retention hook for a score-based game.
+        /// </summary>
+        private void UpdatePersonalBest(GameMode mode)
+        {
+            if (_personalBestText == null) return;
+
+            string leaderboardId = mode switch
+            {
+                GameMode.TimeAttack => Constants.LEADERBOARD_TIME_ATTACK,
+                GameMode.Campaign   => Constants.LEADERBOARD_CAMPAIGN,
+                _                   => Constants.LEADERBOARD_CLASSIC
+            };
+
+            var top = SaveManager.Instance?.Data?.GetLocalTopScores(leaderboardId, 1);
+            _personalBestText.text = (top != null && top.Count > 0)
+                ? $"BEST: {top[0].Score:N0}"
+                : "BEST: ---";
+        }
+
+        // ── Timer ─────────────────────────────────────────────────────────────
+
         private void UpdateTimer(float remaining)
         {
+            // Reveal the timer panel on the first tick — LevelManager only fires this
+            // event when a level with a time limit is active, so this is always correct.
+            if (_timerPanel != null && !_timerPanel.activeSelf)
+                _timerPanel.SetActive(true);
+
             if (_timerText == null) return;
             int mins = (int)(remaining / 60);
             int secs = (int)(remaining % 60);
             _timerText.text = mins > 0 ? $"{mins}:{secs:00}" : $"{secs}";
+        }
+
+        // ── Coins ─────────────────────────────────────────────────────────────
+
+        /// <summary>Update the coin counter display. Called by SaveManager.OnCoinsChanged.</summary>
+        private void UpdateCoins(int totalCoins)
+        {
+            if (_coinText != null)
+                _coinText.text = $"{totalCoins:N0} coins";
+        }
+
+        // ── Power-up indicators ───────────────────────────────────────────────
+
+        private void HandleEffectActivated(PowerUpType type, float duration)
+        {
+            if (type == PowerUpType.Shield && _shieldIndicator != null)
+                _shieldIndicator.SetActive(true);
+        }
+
+        private void HandleEffectDeactivated(PowerUpType type)
+        {
+            if (type == PowerUpType.Shield && _shieldIndicator != null)
+                _shieldIndicator.SetActive(false);
+        }
+
+        /// <summary>Shield was consumed by a collision — hide the indicator immediately.</summary>
+        private void HandleShieldAbsorbed()
+        {
+            if (_shieldIndicator != null) _shieldIndicator.SetActive(false);
         }
     }
 }

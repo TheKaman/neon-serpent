@@ -28,22 +28,31 @@ namespace NeonSerpent.Core
         {
             _isTransitioning = true;
 
-            // Fade out
-            yield return StartCoroutine(Fade(0f, 1f));
+            if (_fadeOverlay != null)
+                yield return StartCoroutine(Fade(0f, 1f));
 
             onMidFade?.Invoke();
 
             AsyncOperation load = SceneManager.LoadSceneAsync(sceneName);
+            if (load == null)
+            {
+                Debug.LogError($"[SceneLoader] Scene '{sceneName}' not found. Make sure it is added to Build Settings.");
+                _isTransitioning = false;
+                if (_fadeOverlay != null) _fadeOverlay.alpha = 0f;
+                yield break;
+            }
+
             yield return new WaitUntil(() => load.isDone);
 
-            // Fade in
-            yield return StartCoroutine(Fade(1f, 0f));
+            if (_fadeOverlay != null)
+                yield return StartCoroutine(Fade(1f, 0f));
 
             _isTransitioning = false;
         }
 
         private IEnumerator Fade(float from, float to)
         {
+            if (_fadeOverlay == null) yield break;
             float elapsed = 0f;
             _fadeOverlay.blocksRaycasts = true;
             while (elapsed < _fadeDuration)

@@ -38,16 +38,22 @@ namespace NeonSerpent.Snake
         public bool IsGhost    { get; set; }
 
         // --- Events ---
-        public event Action<Vector2Int>  OnMoved;         // new head position
-        public event Action<Vector2Int>  OnAteFood;       // position of eaten food
-        public event Action<Vector2Int>  OnAtePowerUp;    // position of picked-up power-up
+        public event Action<Vector2Int>  OnMoved;           // new head position
+        public event Action<Vector2Int>  OnAteFood;         // position of eaten food
+        public event Action<Vector2Int>  OnAtePowerUp;      // position of picked-up power-up
         public event Action              OnHitWall;
         public event Action              OnHitSelf;
+        /// <summary>Fired when the shield absorbs a fatal wall or self-collision hit.</summary>
+        public event Action              OnShieldAbsorbed;
+        /// <summary>Fired once when base speed first reaches MAX_SPEED (Frenzy Mode trigger).</summary>
+        public event Action              OnMaxSpeedReached;
 
         // --- Public read-only state ---
-        public IEnumerable<Vector2Int> Body => _body;
-        public Vector2Int HeadPosition      => _headPosition;
-        public int        Length            => _body.Count;
+        public IEnumerable<Vector2Int> Body             => _body;
+        public Vector2Int              HeadPosition     => _headPosition;
+        public Vector2Int              CurrentDirection => _currentDirection;
+        public int                     Length           => _body.Count;
+        public float                   CurrentSpeed     => _currentSpeed;
 
         // --- Lifecycle ---
 
@@ -61,10 +67,21 @@ namespace NeonSerpent.Snake
         /// <summary>Spawn the snake at the given position facing right.</summary>
         public void Initialize(Vector2Int startPos)
         {
+            StopMovement();
+
+            // Clear previous body positions from the grid before reinitialising
+            foreach (var pos in _body)
+                _grid.ClearCell(pos);
+
             _body.Clear();
             _headPosition      = startPos;
             _currentDirection  = Vector2Int.right;
             _bufferedDirection = Vector2Int.right;
+            _currentSpeed      = Constants.DEFAULT_SPEED;
+            _speedMultiplier   = 1f;
+            _pendingGrowth     = 0;
+            IsShielded         = false;
+            IsGhost            = false;
 
             for (int i = _startLength - 1; i >= 0; i--)
             {
@@ -73,17 +90,23 @@ namespace NeonSerpent.Snake
                 _grid.SetCell(pos, GridCellType.Snake);
             }
             _headPosition = startPos;
+            OnMoved?.Invoke(_headPosition); // refresh visuals immediately at start position
             StartMovement();
         }
 
         /// <summary>
         /// Buffer a direction change. The new direction is applied on the next movement tick.
         /// Ignores 180-degree reversals and duplicate inputs.
+        /// The reversal check compares against <c>_bufferedDirection</c> (not <c>_currentDirection</c>)
+        /// so that two rapid swipes in opposite directions within the same tick cannot cause
+        /// an instant self-collision.
         /// </summary>
         public void SetDirection(Vector2Int dir)
         {
-            // Ignore 180-degree reversal
-            if (dir == -_currentDirection) return;
+            // Ignore 180-degree reversal against the most recently buffered direction.
+            // Using _bufferedDirection (not _currentDirection) prevents the double-swipe
+            // death bug where Right → Left arrives before the move tick consumes Right.
+            if (dir == -_bufferedDirection) return;
             _bufferedDirection = dir;
         }
 
@@ -104,6 +127,32 @@ namespace NeonSerpent.Snake
                 var tail = _body.Dequeue();
                 _grid.ClearCell(tail);
             }
+        }
+
+        /// <summary>
+        /// Immediately stops all snake movement. Call on game over / timer expiry so the
+        /// snake does not keep moving after the session has ended.
+        /// </summary>
+        public void StopSnake() => StopMovement();
+
+        /// <summary>
+        /// Set the base speed directly. Used by GameSession after loading a LevelData
+        /// to apply per-level InitialSpeed instead of always defaulting to Constants.DEFAULT_SPEED.
+        /// </summary>
+        public void SetSpeed(float speed)
+        {
+            _currentSpeed = Mathf.Clamp(speed, 1f, Constants.MAX_SPEED);
+            RestartMovement();
+        }
+
+        /// <summary>Add a flat increment to the base speed (called each time food is eaten).</summary>
+        public void IncrementSpeed(float increment)
+        {
+            bool wasAtMax = _currentSpeed >= Constants.MAX_SPEED;
+            _currentSpeed = Mathf.Min(_currentSpeed + increment, Constants.MAX_SPEED);
+            if (!wasAtMax && _currentSpeed >= Constants.MAX_SPEED)
+                OnMaxSpeedReached?.Invoke();
+            RestartMovement();
         }
 
         /// <summary>Apply a speed multiplier (stacks multiplicatively, call Remove to revert).</summary>
@@ -166,8 +215,10 @@ namespace NeonSerpent.Snake
                 if (IsShielded)
                 {
                     IsShielded = false;
+                    OnShieldAbsorbed?.Invoke();
                     return; // absorb hit
                 }
+                StopMovement();
                 OnHitWall?.Invoke();
                 return;
             }
@@ -180,8 +231,10 @@ namespace NeonSerpent.Snake
                 if (IsShielded)
                 {
                     IsShielded = false;
+                    OnShieldAbsorbed?.Invoke();
                     return;
                 }
+                StopMovement();
                 OnHitSelf?.Invoke();
                 return;
             }
