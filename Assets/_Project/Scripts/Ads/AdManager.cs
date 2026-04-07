@@ -283,7 +283,7 @@ namespace NeonSerpent.Ads
         /// produce no ad traffic. Implement with a real banner ad unit if banners
         /// are added to the monetisation plan in a future update.
         /// </summary>
-        public void ShowBanner()
+        public void ShowBanner() // stub — banner ads not used in NeonSerpent
         {
             Debug.Log("[AdManager] ShowBanner called — banner ads are not implemented in NeonSerpent.");
         }
