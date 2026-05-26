@@ -151,7 +151,14 @@ namespace NeonSerpent.UI
         {
             if (_panel != null) _panel.SetActive(false);
 
-            LevelData current = _levelManager?.CurrentLevel;
+            if (_levelManager == null)
+            {
+                Debug.LogWarning("[LevelCompleteUI] _levelManager is null — cannot retry. Returning to menu.");
+                OnMainMenu();
+                return;
+            }
+
+            LevelData current = _levelManager.CurrentLevel;
             if (current == null) { OnMainMenu(); return; }
 
             if (GameManager.Instance != null)
