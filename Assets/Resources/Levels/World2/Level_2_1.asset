@@ -23,18 +23,18 @@ MonoBehaviour:
   TimeLimit: 0
   ScoreTarget: 240
   WallPositions:
-  - {x: 2, y: 9}
-  - {x: 3, y: 9}
-  - {x: 4, y: 9}
-  - {x: 5, y: 9}
-  - {x: 6, y: 9}
-  - {x: 7, y: 9}
-  - {x: 10, y: 9}
-  - {x: 11, y: 9}
-  - {x: 12, y: 9}
-  - {x: 13, y: 9}
-  - {x: 14, y: 9}
-  - {x: 15, y: 9}
+  - {x: 2, y: 8}
+  - {x: 3, y: 8}
+  - {x: 4, y: 8}
+  - {x: 5, y: 8}
+  - {x: 6, y: 8}
+  - {x: 7, y: 8}
+  - {x: 10, y: 8}
+  - {x: 11, y: 8}
+  - {x: 12, y: 8}
+  - {x: 13, y: 8}
+  - {x: 14, y: 8}
+  - {x: 15, y: 8}
   AllowedPowerUps: 000000000100000002000000
   Mode: 2
   StarThreshold1: 90

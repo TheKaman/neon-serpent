@@ -31,11 +31,30 @@ namespace NeonSerpent.PowerUps
         private readonly Dictionary<PowerUpItem, Vector2Int> _itemGridCells = new Dictionary<PowerUpItem, Vector2Int>();
         private Coroutine _spawnCoroutine;
 
-        /// <summary>Begin the spawn cycle. Pass allowed types from LevelData.</summary>
+        /// <summary>
+        /// Begin the spawn cycle with the given set of allowed power-up types.
+        /// If <paramref name="allowedTypes"/> is null or empty the previously configured
+        /// <c>_allowedTypes</c> (set in the Inspector) is used, which matches Classic and
+        /// Time Attack behaviour. For Campaign levels this is always passed explicitly from
+        /// <c>LevelData.AllowedPowerUps</c> so each level's power-up palette is isolated.
+        /// </summary>
+        /// <remarks>
+        /// Bug C fix: previously the allowed-types array was only overwritten when the new
+        /// value was non-null and non-empty. This meant that if a later Campaign level had
+        /// no allowed power-ups (empty array), the previous level's types would persist and
+        /// the wrong power-ups would spawn.  The fix always resets to the Inspector-default
+        /// (null) first, then applies the new value — so an empty or null array genuinely
+        /// means "no power-ups" rather than "keep the old ones".
+        /// </remarks>
         public void StartSpawning(PowerUpType[] allowedTypes = null)
         {
-            if (allowedTypes != null && allowedTypes.Length > 0)
-                _allowedTypes = allowedTypes;
+            // Always apply the incoming value (including null/empty) so each session starts
+            // with a clean slate. Classic/TimeAttack callers pass null and rely on the
+            // Inspector-serialised _allowedTypes field; that field is left unchanged here
+            // because we only overwrite the runtime copy used by TrySpawn.
+            if (allowedTypes != null)
+                _allowedTypes = allowedTypes.Length > 0 ? allowedTypes : null;
+            // If allowedTypes is null the caller wants "use Inspector default" — leave _allowedTypes as-is.
 
             StopSpawning();
             _spawnCoroutine = StartCoroutine(SpawnCycle());

@@ -43,6 +43,9 @@ namespace NeonSerpent.UI
         [SerializeField] private PowerUpManager _powerUpManager;
         [SerializeField] private SnakeController _snake;
 
+        // Campaign score-target tracking (no new UI element needed — reuses _personalBestText)
+        private long _campaignScoreTarget;
+
         private void Awake()
         {
             _pauseButton?.onClick.AddListener(() => _pauseUI?.Toggle());
@@ -56,7 +59,10 @@ namespace NeonSerpent.UI
                 _scoreManager.OnFrenzyChanged += HandleFrenzyChanged;
             }
             if (_levelManager != null)
+            {
                 _levelManager.OnTimerUpdated += UpdateTimer;
+                _levelManager.OnLevelLoaded  += HandleLevelLoaded;
+            }
             if (SaveManager.Instance != null)
                 SaveManager.Instance.OnCoinsChanged += UpdateCoins;
             if (GameManager.Instance != null)
@@ -78,7 +84,10 @@ namespace NeonSerpent.UI
                 _scoreManager.OnFrenzyChanged -= HandleFrenzyChanged;
             }
             if (_levelManager != null)
+            {
                 _levelManager.OnTimerUpdated -= UpdateTimer;
+                _levelManager.OnLevelLoaded  -= HandleLevelLoaded;
+            }
             if (SaveManager.Instance != null)
                 SaveManager.Instance.OnCoinsChanged -= UpdateCoins;
             if (GameManager.Instance != null)
@@ -126,7 +135,13 @@ namespace NeonSerpent.UI
             if (_timerPanel      != null) _timerPanel.SetActive(false);
             if (_shieldIndicator != null) _shieldIndicator.SetActive(false);
             if (_frenzyIndicator != null) _frenzyIndicator.SetActive(false);
-            UpdatePersonalBest(mode);
+
+            if (mode != GameMode.Campaign)
+            {
+                _campaignScoreTarget = 0;
+                UpdatePersonalBest(mode);
+            }
+            // Campaign personal best is set by HandleLevelLoaded once the level actually loads
         }
 
         // ── Score events ──────────────────────────────────────────────────────
@@ -140,11 +155,40 @@ namespace NeonSerpent.UI
                 _multiplierText.text    = mult > 1 ? $"x{mult}" : "";
                 _multiplierText.enabled = mult > 1;
             }
+
+            // In Campaign with a score target, repurpose the personal best label to show
+            // how many points the player still needs — the most useful real-time info.
+            bool isCampaign = GameManager.Instance?.CurrentMode == GameMode.Campaign;
+            if (isCampaign && _campaignScoreTarget > 0 && _personalBestText != null)
+            {
+                long remaining = _campaignScoreTarget - score;
+                _personalBestText.text = remaining > 0
+                    ? $"NEED: {remaining:N0}"
+                    : "TARGET HIT!";
+            }
         }
 
         private void HandleFrenzyChanged(bool active)
         {
             if (_frenzyIndicator != null) _frenzyIndicator.SetActive(active);
+        }
+
+        // ── Level loaded (Campaign) ───────────────────────────────────────────
+
+        /// <summary>
+        /// Called when LevelManager loads a new level. In Campaign mode the personal best
+        /// label is repurposed to show the score target so the player always knows their goal.
+        /// </summary>
+        private void HandleLevelLoaded(LevelData data)
+        {
+            _campaignScoreTarget = data != null ? data.ScoreTarget : 0;
+            if (_personalBestText == null) return;
+
+            bool isCampaign = GameManager.Instance?.CurrentMode == GameMode.Campaign;
+            if (isCampaign && _campaignScoreTarget > 0)
+                _personalBestText.text = $"TARGET: {_campaignScoreTarget:N0}";
+            else if (!isCampaign)
+                UpdatePersonalBest(GameManager.Instance?.CurrentMode ?? GameMode.ClassicEndless);
         }
 
         // ── Personal best ─────────────────────────────────────────────────────

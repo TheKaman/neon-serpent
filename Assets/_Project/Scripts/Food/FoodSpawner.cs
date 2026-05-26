@@ -34,7 +34,8 @@ namespace NeonSerpent.Food
         private FoodItem   _currentBonusFood;
         private Vector2Int _currentBonusFoodCell;
 
-        private int _eatsSinceLastBonus;
+        private int  _eatsSinceLastBonus;
+        private bool _active;
         // Minimum normal-food eats required between bonus/poison spawns.
         // Prevents back-to-back poison or bonus items that feel unfair.
         private const int MIN_EATS_BEFORE_BONUS = 3;
@@ -43,12 +44,14 @@ namespace NeonSerpent.Food
         public void StartSpawning()
         {
             _eatsSinceLastBonus = 0;
+            _active = true;
             SpawnNormalFood();
         }
 
         /// <summary>Remove all food and stop spawning (call on game over / level reset).</summary>
         public void StopSpawning()
         {
+            _active = false;
             DespawnAll();
         }
 
@@ -114,7 +117,7 @@ namespace NeonSerpent.Food
 
         private void SpawnNormalFood()
         {
-            if (_currentNormalFood != null) return;
+            if (!_active || _currentNormalFood != null) return;
             Vector2Int cell = _grid.GetRandomEmptyCell();
             if (cell.x < 0) return;
             _currentNormalFood     = Spawn(_normalFoodPrefab, cell);
@@ -123,6 +126,7 @@ namespace NeonSerpent.Food
 
         private void TrySpawnBonusOrPoison()
         {
+            if (!_active) return;
             // Enforce a cooldown: require MIN_EATS_BEFORE_BONUS consecutive normal-food
             // eats before another bonus or poison item is allowed to spawn.
             if (_currentBonusFood != null || _eatsSinceLastBonus < MIN_EATS_BEFORE_BONUS) return;

@@ -14,9 +14,15 @@ namespace NeonSerpent.Levels
     public class LevelManager : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private GridSystem      _grid;
-        [SerializeField] private SnakeController _snake;
-        [SerializeField] private ScoreManager    _score;
+        [SerializeField] private GridSystem       _grid;
+        [SerializeField] private SnakeController  _snake;
+        [SerializeField] private ScoreManager     _score;
+        /// <summary>
+        /// Optional: assign the NeonGridRenderer so it rebuilds its border mesh when
+        /// a level changes the grid dimensions (e.g. Campaign World 2+ has larger grids).
+        /// Without this, the neon border stays the wrong size after the first level.
+        /// </summary>
+        [SerializeField] private NeonGridRenderer _gridRenderer;
 
         [Header("Level to Load")]
         [SerializeField] private LevelData _levelData;
@@ -27,7 +33,8 @@ namespace NeonSerpent.Levels
 
         public LevelData CurrentLevel => _levelData;
 
-        public event System.Action<float> OnTimerUpdated;   // remaining seconds
+        public event System.Action<float>     OnTimerUpdated;  // remaining seconds
+        public event System.Action<LevelData> OnLevelLoaded;   // fired after grid/walls are ready
 
         /// <summary>Apply the given level config and start the session.</summary>
         public void LoadLevel(LevelData data)
@@ -41,6 +48,12 @@ namespace NeonSerpent.Levels
                 // WallPositions is nullable when no walls are assigned in the Inspector
                 if (data.WallPositions != null && data.WallPositions.Length > 0)
                     _grid.SetWalls(data.WallPositions);
+
+                // Bug B fix: rebuild the neon border mesh to match the new grid dimensions.
+                // Without this the border stays the wrong size when advancing to a level with
+                // a different grid size (e.g. World1 16×16 → World2 18×18) without a
+                // full scene reload.
+                _gridRenderer?.BuildGridMesh();
             }
 
             _active = true;
@@ -60,6 +73,8 @@ namespace NeonSerpent.Levels
                 _score.OnScoreChanged -= CheckScoreTarget;
                 _score.OnScoreChanged += CheckScoreTarget;
             }
+
+            OnLevelLoaded?.Invoke(data);
         }
 
         /// <summary>

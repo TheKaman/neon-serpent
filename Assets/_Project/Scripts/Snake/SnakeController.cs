@@ -54,6 +54,11 @@ namespace NeonSerpent.Snake
         public Vector2Int              CurrentDirection => _currentDirection;
         public int                     Length           => _body.Count;
         public float                   CurrentSpeed     => _currentSpeed;
+        /// <summary>
+        /// The configured initial body length. Used by GameSession to calculate how much
+        /// horizontal runway is needed when validating the snake's spawn position.
+        /// </summary>
+        public int                     StartLength      => _startLength;
 
         // --- Lifecycle ---
 

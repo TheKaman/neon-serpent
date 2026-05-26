@@ -252,7 +252,15 @@ namespace NeonSerpent.Core
                 _scoreManager?.ResetScore();
             }
 
-            _snake?.Initialize(_snakeStartPos);
+            // Bug A fix: validate the start position against the current grid so the snake
+            // never spawns on top of a wall cell. Level_4_1 places walls at (4,10) and (5,10)
+            // which are exactly where the default 3-segment snake body lands, silently erasing
+            // those wall cells from the GridSystem and breaking collision for the rest of the
+            // session. GetValidatedStartPosition spirals outward until a wall-free run is found.
+            Vector2Int validatedStart = _snakeStartPos;
+            if (_grid != null && _snake != null)
+                validatedStart = _grid.GetValidatedStartPosition(_snakeStartPos, _snake.StartLength);
+            _snake?.Initialize(validatedStart);
 
             // Apply per-level initial speed now that Initialize() has reset it to DEFAULT_SPEED.
             // Must happen after Initialize so the coroutine restart uses the correct value (Bug 4).

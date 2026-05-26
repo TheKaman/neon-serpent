@@ -109,5 +109,64 @@ namespace NeonSerpent.Grid
         public Vector2Int WorldToGrid(Vector3 worldPos) =>
             new Vector2Int(Mathf.RoundToInt(worldPos.x / Constants.CELL_SIZE),
                            Mathf.RoundToInt(worldPos.y / Constants.CELL_SIZE));
+
+        /// <summary>
+        /// Returns <paramref name="preferred"/> if it is in bounds and not a wall cell.
+        /// Otherwise performs a spiral search outward from <paramref name="preferred"/>
+        /// until a valid (in-bounds, non-wall, non-snake) cell is found.
+        /// The snake needs at least <paramref name="snakeLength"/> consecutive horizontal
+        /// cells (facing right) to spawn — this method checks that full run.
+        /// Returns <paramref name="preferred"/> unchanged if validation cannot be performed
+        /// (grid not initialised).
+        /// </summary>
+        /// <param name="preferred">The desired start position (grid coordinates).</param>
+        /// <param name="snakeLength">Number of body segments to validate space for.</param>
+        public Vector2Int GetValidatedStartPosition(Vector2Int preferred, int snakeLength = 3)
+        {
+            if (_cells == null) return preferred;
+
+            // Check whether the full spawn run (head at preferred, tail extends left) is clear.
+            if (IsSpawnRunClear(preferred, snakeLength))
+                return preferred;
+
+            // Spiral outward in expanding Manhattan rings until a clear run is found.
+            // Cap at half the shorter dimension to avoid an infinite loop on tiny grids.
+            int maxRadius = Mathf.Min(_width, _height) / 2;
+            for (int r = 1; r <= maxRadius; r++)
+            {
+                // Walk the perimeter of the square ring at radius r around preferred.
+                for (int dx = -r; dx <= r; dx++)
+                {
+                    for (int dy = -r; dy <= r; dy++)
+                    {
+                        if (Mathf.Abs(dx) != r && Mathf.Abs(dy) != r) continue; // inner cells
+                        var candidate = new Vector2Int(preferred.x + dx, preferred.y + dy);
+                        if (IsSpawnRunClear(candidate, snakeLength))
+                            return candidate;
+                    }
+                }
+            }
+
+            // Absolute fallback: return the preferred position and log a warning.
+            Debug.LogWarning($"[GridSystem] GetValidatedStartPosition: could not find a clear spawn " +
+                $"run for snake length {snakeLength} — using preferred position {preferred}.");
+            return preferred;
+        }
+
+        /// <summary>
+        /// Returns true if <paramref name="headPos"/> and the <paramref name="length"/>-1
+        /// cells extending left of it are all in bounds and free of Wall cells.
+        /// </summary>
+        private bool IsSpawnRunClear(Vector2Int headPos, int length)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                var cell = new Vector2Int(headPos.x - i, headPos.y);
+                if (!IsInBounds(cell)) return false;
+                GridCellType t = _cells[cell.x, cell.y].Type;
+                if (t == GridCellType.Wall) return false;
+            }
+            return true;
+        }
     }
 }
