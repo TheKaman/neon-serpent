@@ -12,10 +12,11 @@ namespace NeonSerpent.UI
     /// </summary>
     public class EditorModePicker : MonoBehaviour
     {
-        [SerializeField] private GameObject _panel;
-        [SerializeField] private Button     _classicBtn;
-        [SerializeField] private Button     _timeAttackBtn;
-        [SerializeField] private Button     _campaignBtn;
+        [SerializeField] private GameObject  _panel;
+        [SerializeField] private Button      _classicBtn;
+        [SerializeField] private Button      _timeAttackBtn;
+        [SerializeField] private Button      _campaignBtn;
+        [SerializeField] private GameSession _gameSession;
 
         private void Start()
         {
@@ -36,11 +37,7 @@ namespace NeonSerpent.UI
         private void Pick(GameMode mode)
         {
             if (_panel != null) _panel.SetActive(false);
-
-            // Pass the chosen mode so StartSessionInternal uses the correct level config
-            // (Time Attack needs _timeAttackLevel; Campaign needs _selectedLevel).
-            var session = FindFirstObjectByType<GameSession>();
-            session?.BeginEditorSession(mode);
+            _gameSession?.BeginEditorSession(mode);
         }
     }
 }

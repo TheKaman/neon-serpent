@@ -43,9 +43,12 @@ namespace NeonSerpent.Food
             transform.localScale    = Vector3.one;
             transform.localRotation = Quaternion.identity;
 
-            // Always restore full visibility — prevents leftover tint from stale prefab data
+            // Poison gets a distinct neon purple so players can identify it at speed.
+            // Normal and Bonus stay white (Bonus shifts to red during its despawn countdown).
             if (_spriteRenderer != null)
-                _spriteRenderer.color = Color.white;
+                _spriteRenderer.color = _type == FoodType.Poison
+                    ? new Color(0.7f, 0.1f, 1f)
+                    : Color.white;
 
             if (_type == FoodType.Bonus)
                 _despawnCoroutine = StartCoroutine(DespawnRoutine());

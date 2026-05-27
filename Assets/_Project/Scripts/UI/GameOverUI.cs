@@ -24,6 +24,7 @@ namespace NeonSerpent.UI
         [SerializeField] private TMP_Text   _newBestText;
         [SerializeField] private Button     _restartButton;
         [SerializeField] private Button     _mainMenuButton;
+        [SerializeField] private Button     _viewLeaderboardBtn;
 
         [Header("References")]
         [SerializeField] private ScoreManager _scoreManager;
@@ -31,13 +32,11 @@ namespace NeonSerpent.UI
 
         private void Awake()
         {
-            // Auto-find GameSession in case inspector reference wasn't wired
-            if (_gameSession == null)
-                _gameSession = FindFirstObjectByType<GameSession>();
-
             if (_panel != null) _panel.SetActive(false);
+            if (_viewLeaderboardBtn != null) _viewLeaderboardBtn.gameObject.SetActive(false);
             _restartButton?.onClick.AddListener(OnRestart);
             _mainMenuButton?.onClick.AddListener(OnMainMenu);
+            _viewLeaderboardBtn?.onClick.AddListener(OnViewLeaderboard);
         }
 
         private void OnEnable()
@@ -86,13 +85,15 @@ namespace NeonSerpent.UI
             if (_bestScoreText != null)
                 _bestScoreText.text = BuildBestScoreText();
 
+            bool isNewBest = IsNewPersonalBest(currentScore);
             if (_newBestText != null)
             {
-                bool isNewBest = IsNewPersonalBest(currentScore);
                 _newBestText.gameObject.SetActive(isNewBest);
                 if (isNewBest)
                     _newBestText.color = new Color(1f, 0.84f, 0f, 1f); // gold
             }
+            if (_viewLeaderboardBtn != null)
+                _viewLeaderboardBtn.gameObject.SetActive(isNewBest);
 
             CancelInvoke(nameof(ShowAd));
             Invoke(nameof(ShowAd), 2.5f); // give the player time to read their score before the ad appears
@@ -124,9 +125,9 @@ namespace NeonSerpent.UI
             // Also require a non-zero score — a score of 0 is never a meaningful personal best.
             if (raw.Count <= 1) return currentScore > 0;
 
-            // raw[0] is always the all-time best after RecordLocalHighScore sorts descending.
-            // The current run is a new personal best iff its score equals or exceeds the top entry.
-            return currentScore >= raw[0].score;
+            // raw[0] = all-time best (may be this run). raw[1] = previous best.
+            // New best only if this run strictly exceeds the previous best (ties don't count).
+            return currentScore == raw[0].score && currentScore > raw[1].score;
         }
 
         /// <summary>
@@ -166,6 +167,14 @@ namespace NeonSerpent.UI
         }
 
         private void ShowAd() => AdManager.Instance?.ShowGameOverInterstitial();
+
+        private void OnViewLeaderboard()
+        {
+            if (_panel != null) _panel.SetActive(false);
+            GameManager.Instance?.GoToMainMenu();
+            AdManager.Instance?.OnReturnToMenu();
+            SceneLoader.Instance?.LoadScene(Constants.SCENE_LEADERBOARD);
+        }
 
         private void OnRestart()
         {

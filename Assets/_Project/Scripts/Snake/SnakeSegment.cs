@@ -8,7 +8,12 @@ namespace NeonSerpent.Snake
     /// </summary>
     public class SnakeSegment : MonoBehaviour
     {
-        // Reserved for per-segment data (e.g., skin variant, animation state).
-        // Currently a marker component used by the object pool.
+        /// <summary>Cached SpriteRenderer — avoids GetComponent calls on every move tick.</summary>
+        public SpriteRenderer Renderer { get; private set; }
+
+        private void Awake()
+        {
+            Renderer = GetComponent<SpriteRenderer>();
+        }
     }
 }

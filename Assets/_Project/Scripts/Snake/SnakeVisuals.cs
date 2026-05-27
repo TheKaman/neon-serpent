@@ -216,20 +216,16 @@ namespace NeonSerpent.Snake
 
         private void ApplySkinColor(SnakeSegment seg, float alpha)
         {
-            if (seg == null) return;
-            var sr = seg.GetComponent<SpriteRenderer>();
-            if (sr == null) return;
-            sr.color = new Color(_skinColor.r, _skinColor.g, _skinColor.b, alpha);
+            if (seg == null || seg.Renderer == null) return;
+            seg.Renderer.color = new Color(_skinColor.r, _skinColor.g, _skinColor.b, alpha);
         }
 
         private void SetSegmentAlpha(SnakeSegment seg, float alpha)
         {
-            if (seg == null) return;
-            var sr = seg.GetComponent<SpriteRenderer>();
-            if (sr == null) return;
-            var c = sr.color;
+            if (seg == null || seg.Renderer == null) return;
+            var c = seg.Renderer.color;
             c.a = alpha;
-            sr.color = c;
+            seg.Renderer.color = c;
         }
     }
 }

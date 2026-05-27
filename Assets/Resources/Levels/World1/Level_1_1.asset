@@ -23,7 +23,7 @@ MonoBehaviour:
   TimeLimit: 0
   ScoreTarget: 90
   WallPositions: []
-  AllowedPowerUps: 00000000
+  AllowedPowerUps: 02000000
   Mode: 2
   StarThreshold1: 30
   StarThreshold2: 60

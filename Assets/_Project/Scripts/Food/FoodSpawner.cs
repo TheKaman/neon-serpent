@@ -32,7 +32,8 @@ namespace NeonSerpent.Food
         private FoodItem   _currentNormalFood;
         private Vector2Int _currentNormalFoodCell;
         private FoodItem   _currentBonusFood;
-        private Vector2Int _currentBonusFoodCell;
+        private Vector2Int _currentBonusFoodCell = new Vector2Int(-1, -1);
+        private FoodType   _currentBonusFoodType;
 
         private int  _eatsSinceLastBonus;
         private bool _active;
@@ -43,8 +44,9 @@ namespace NeonSerpent.Food
         /// <summary>Begin spawning. Call after the grid is initialized.</summary>
         public void StartSpawning()
         {
-            _eatsSinceLastBonus = 0;
-            _active = true;
+            _eatsSinceLastBonus  = 0;
+            _active              = true;
+            _currentBonusFoodCell = new Vector2Int(-1, -1);
             SpawnNormalFood();
         }
 
@@ -67,18 +69,24 @@ namespace NeonSerpent.Food
                 _grid.ClearCell(_currentNormalFoodCell);
                 _currentNormalFood = null;
             }
-            else if (_currentBonusFood != null && _currentBonusFoodCell == pos)
+            else if (_currentBonusFoodCell == pos && _currentBonusFoodCell.x >= 0)
             {
-                eaten = _currentBonusFood.Type;
-                Destroy(_currentBonusFood.gameObject);
+                // Handles both the normal eat case and the expiry race: if the bonus food
+                // expired at the exact same tick the snake ate it, _currentBonusFood is
+                // already null but the cell and type are still tracked.
+                eaten = _currentBonusFood != null ? _currentBonusFood.Type : _currentBonusFoodType;
+                if (_currentBonusFood != null)
+                {
+                    _currentBonusFood.OnExpired -= OnBonusFoodExpired;
+                    Destroy(_currentBonusFood.gameObject);
+                }
                 _grid.ClearCell(_currentBonusFoodCell);
-                _currentBonusFood = null;
+                _currentBonusFood     = null;
+                _currentBonusFoodCell = new Vector2Int(-1, -1);
             }
             else
             {
                 // The eaten position does not match any tracked food cell.
-                // This can happen if food expired and was removed between the move
-                // tick and this call. Do nothing — no score, no respawn, no event.
                 Debug.LogWarning($"[FoodSpawner] HandleFoodEaten({pos}): position matches no tracked food cell. Ignoring.");
                 return;
             }
@@ -139,8 +147,9 @@ namespace NeonSerpent.Food
                 {
                     _currentBonusFood     = Spawn(_poisonFoodPrefab, cell);
                     _currentBonusFoodCell = cell;
+                    _currentBonusFoodType = FoodType.Poison;
                     _currentBonusFood.OnExpired += OnBonusFoodExpired;
-                    _eatsSinceLastBonus = 0; // restart cooldown from this spawn
+                    _eatsSinceLastBonus = 0;
                 }
             }
             else if (roll < _poisonSpawnChance + _bonusSpawnChance)
@@ -150,8 +159,9 @@ namespace NeonSerpent.Food
                 {
                     _currentBonusFood     = Spawn(_bonusFoodPrefab, cell);
                     _currentBonusFoodCell = cell;
+                    _currentBonusFoodType = FoodType.Bonus;
                     _currentBonusFood.OnExpired += OnBonusFoodExpired;
-                    _eatsSinceLastBonus = 0; // restart cooldown from this spawn
+                    _eatsSinceLastBonus = 0;
                 }
             }
         }
@@ -167,6 +177,7 @@ namespace NeonSerpent.Food
         {
             item.OnExpired -= OnBonusFoodExpired;
             Despawn(_currentBonusFoodCell);
+            _currentBonusFoodCell = new Vector2Int(-1, -1);
             if (item != null) Destroy(item.gameObject);
             _currentBonusFood = null;
         }

@@ -12,11 +12,6 @@ namespace NeonSerpent.Audio
     [CreateAssetMenu(fileName = "SoundLibrary", menuName = "NeonSerpent/Sound Library")]
     public class SoundLibrary : ScriptableObject
     {
-        // ── Music clips — assigned directly (not through the SoundEvent lookup) ──
-        [Header("Music")]
-        [SerializeField] public AudioClip MenuMusic;
-        [SerializeField] public AudioClip GameMusic;
-
         // ── SFX entries ───────────────────────────────────────────────────────────
         [Serializable]
         private struct SoundEntry

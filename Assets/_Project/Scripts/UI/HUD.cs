@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using NeonSerpent.Audio;
 using NeonSerpent.Core;
 using NeonSerpent.PowerUps;
 using NeonSerpent.Scoring;
@@ -45,6 +46,10 @@ namespace NeonSerpent.UI
 
         // Campaign score-target tracking (no new UI element needed — reuses _personalBestText)
         private long _campaignScoreTarget;
+
+        private const float TIMER_URGENCY_THRESHOLD = 10f;
+        private int  _lastUrgencyTickSecond = -1;
+        private bool _urgencyActive;
 
         private void Awake()
         {
@@ -135,6 +140,9 @@ namespace NeonSerpent.UI
             if (_timerPanel      != null) _timerPanel.SetActive(false);
             if (_shieldIndicator != null) _shieldIndicator.SetActive(false);
             if (_frenzyIndicator != null) _frenzyIndicator.SetActive(false);
+            if (_timerText       != null) _timerText.color = Color.white;
+            _urgencyActive         = false;
+            _lastUrgencyTickSecond = -1;
 
             if (mode != GameMode.Campaign)
             {
@@ -222,9 +230,33 @@ namespace NeonSerpent.UI
             // Reveal the timer panel on the first tick — LevelManager only fires this
             // event when a level with a time limit is active, so this is always correct.
             if (_timerPanel != null && !_timerPanel.activeSelf)
+            {
                 _timerPanel.SetActive(true);
+                _urgencyActive = false;
+                _lastUrgencyTickSecond = -1;
+            }
 
             if (_timerText == null) return;
+
+            bool urgent = remaining <= TIMER_URGENCY_THRESHOLD && remaining > 0f;
+            _timerText.color = urgent ? Color.red : Color.white;
+
+            if (urgent)
+            {
+                int currentSec = Mathf.CeilToInt(remaining);
+                if (currentSec != _lastUrgencyTickSecond)
+                {
+                    _lastUrgencyTickSecond = currentSec;
+                    AudioManager.Instance?.PlaySFX(SoundEvent.TimerTick);
+                }
+            }
+            else if (_urgencyActive)
+            {
+                // Timer was reset (new level) — restore white
+                _timerText.color = Color.white;
+            }
+            _urgencyActive = urgent;
+
             int mins = (int)(remaining / 60);
             int secs = (int)(remaining % 60);
             _timerText.text = mins > 0 ? $"{mins}:{secs:00}" : $"{secs}";

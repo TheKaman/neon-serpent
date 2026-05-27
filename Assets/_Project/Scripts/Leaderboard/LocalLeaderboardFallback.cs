@@ -26,8 +26,8 @@ namespace NeonSerpent.Leaderboard
 
         public void SubmitScore(long score, string leaderboardId, Action<bool> onComplete)
         {
+            // GameSession.RecordHighScore already calls SaveManager.Save() after this returns.
             _saveManager.Data.RecordLocalHighScore(leaderboardId, score);
-            _saveManager.Save();
             onComplete?.Invoke(true);
         }
 

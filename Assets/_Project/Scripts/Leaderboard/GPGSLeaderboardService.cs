@@ -9,7 +9,6 @@ using UnityEngine;
 #if GPGS_ENABLED
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
-using GooglePlayGames.BasicApi.SavedGame;
 #endif
 
 namespace NeonSerpent.Leaderboard
@@ -37,12 +36,7 @@ namespace NeonSerpent.Leaderboard
         public void Initialize()
         {
 #if GPGS_ENABLED
-            var config = new PlayGamesClientConfiguration.Builder()
-                .RequestEmail()
-                .RequestIdToken()
-                .Build();
-
-            PlayGamesPlatform.InitializeInstance(config);
+            // v11+ API: PlayGamesClientConfiguration was removed. Activate directly.
             PlayGamesPlatform.DebugLogEnabled = Debug.isDebugBuild;
             PlayGamesPlatform.Activate();
             Debug.Log("[GPGS] PlayGamesPlatform activated.");

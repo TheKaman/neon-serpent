@@ -23,6 +23,14 @@ namespace NeonSerpent.UI
         [Header("Best Score")]
         [SerializeField] private TMP_Text _bestScoreText;
 
+        [Header("Buttons")]
+        [SerializeField] private Button _classicBtn;
+        [SerializeField] private Button _timeAttackBtn;
+        [SerializeField] private Button _campaignBtn;
+        [SerializeField] private Button _leaderboardBtn;
+        [SerializeField] private Button _shopBtn;
+        [SerializeField] private Button _settingsBtn;
+
         [Header("Entrance Animation")]
         [SerializeField] private float _titleSlideDist  = 60f;
         [SerializeField] private float _titleFadeDur    = 0.45f;
@@ -31,12 +39,12 @@ namespace NeonSerpent.UI
 
         private void Start()
         {
-            WireButton("ClassicBtn",     () => StartMode(GameMode.ClassicEndless));
-            WireButton("TimeAttackBtn",  () => StartMode(GameMode.TimeAttack));
-            WireButton("CampaignBtn",    () => SceneLoader.Instance?.LoadScene(Constants.SCENE_LEVEL_SELECT));
-            WireButton("LeaderboardBtn", () => SceneLoader.Instance?.LoadScene(Constants.SCENE_LEADERBOARD));
-            WireButton("ShopBtn",        () => SceneLoader.Instance?.LoadScene(Constants.SCENE_SHOP));
-            WireButton("SettingsBtn",    () => SceneLoader.Instance?.LoadScene(Constants.SCENE_SETTINGS));
+            _classicBtn?.onClick.AddListener(    () => StartMode(GameMode.ClassicEndless));
+            _timeAttackBtn?.onClick.AddListener( () => StartMode(GameMode.TimeAttack));
+            _campaignBtn?.onClick.AddListener(   () => SceneLoader.Instance?.LoadScene(Constants.SCENE_LEVEL_SELECT));
+            _leaderboardBtn?.onClick.AddListener(() => SceneLoader.Instance?.LoadScene(Constants.SCENE_LEADERBOARD));
+            _shopBtn?.onClick.AddListener(       () => SceneLoader.Instance?.LoadScene(Constants.SCENE_SHOP));
+            _settingsBtn?.onClick.AddListener(   () => SceneLoader.Instance?.LoadScene(Constants.SCENE_SETTINGS));
 
             RefreshBestScore();
             StartCoroutine(EntranceRoutine());
@@ -101,25 +109,6 @@ namespace NeonSerpent.UI
             var scores = SaveManager.Instance.Data.GetLocalTopScores(Constants.LEADERBOARD_CLASSIC, 1);
             long best  = scores.Count > 0 ? scores[0].Score : 0;
             _bestScoreText.text = best > 0 ? $"BEST  {best:N0}" : string.Empty;
-        }
-
-        // ─────────────────────────────────────────────────────────
-        // BUTTON WIRING
-        // ─────────────────────────────────────────────────────────
-
-        private void WireButton(string btnName, UnityEngine.Events.UnityAction action)
-        {
-            var btn = GetComponentInParent<Canvas>()?.GetComponentInChildren<Transform>()
-                      ?.Find(btnName)?.GetComponent<Button>();
-
-            if (btn == null)
-            {
-                var allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
-                foreach (var b in allButtons)
-                    if (b.gameObject.name == btnName) { btn = b; break; }
-            }
-
-            btn?.onClick.AddListener(action);
         }
 
         private void StartMode(GameMode mode)

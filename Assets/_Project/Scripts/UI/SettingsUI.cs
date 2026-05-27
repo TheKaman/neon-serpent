@@ -60,7 +60,7 @@ namespace NeonSerpent.UI
         {
             float sfxVolume   = PlayerPrefs.GetFloat("sfx_volume",   1f);
             float musicVolume = PlayerPrefs.GetFloat("music_volume", 0.7f);
-            bool  vibration   = PlayerPrefs.GetInt("vibration", 1) == 1;
+            bool  vibration   = SaveManager.Instance?.Data?.vibrationEnabled ?? true;
 
             if (_sfxSlider   != null) _sfxSlider.value   = sfxVolume;
             if (_musicSlider != null) _musicSlider.value  = musicVolume;
@@ -117,7 +117,11 @@ namespace NeonSerpent.UI
         /// <param name="isOn">True to enable vibration, false to disable.</param>
         private void OnVibrationToggleChanged(bool isOn)
         {
-            PlayerPrefs.SetInt("vibration", isOn ? 1 : 0);
+            if (SaveManager.Instance?.Data != null)
+            {
+                SaveManager.Instance.Data.vibrationEnabled = isOn;
+                SaveManager.Instance.Save();
+            }
 
 #if UNITY_ANDROID
             if (isOn)

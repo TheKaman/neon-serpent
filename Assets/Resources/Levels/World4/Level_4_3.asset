@@ -21,7 +21,7 @@ MonoBehaviour:
   InitialSpeed: 12
   SpeedIncrement: 0.4
   TimeLimit: 90
-  ScoreTarget: 1500
+  ScoreTarget: 900
   WallPositions:
   - {x: 1, y: 16}
   - {x: 2, y: 16}
@@ -77,7 +77,7 @@ MonoBehaviour:
   - {x: 1, y: 7}
   AllowedPowerUps: 000000000100000002000000030000000400000005000000
   Mode: 2
-  StarThreshold1: 800
-  StarThreshold2: 1200
-  StarThreshold3: 1800
+  StarThreshold1: 480
+  StarThreshold2: 720
+  StarThreshold3: 1100
   NextLevel: {fileID: 11400000, guid: 71597780800d1a2499213079d6529094, type: 2}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -52,7 +53,9 @@ namespace NeonSerpent.Audio
             source.volume = _sfxVolume;
             source.Play();
 
-            Coroutine cr = StartCoroutine(ReturnToPoolWhenDone(source, clip.length));
+            // Capture cr by ref in the lambda so the coroutine removes itself on completion.
+            Coroutine cr = null;
+            cr = StartCoroutine(ReturnToPoolWhenDone(source, clip.length, () => _activeCoroutines.Remove(cr)));
             _activeCoroutines.Add(cr);
         }
 
@@ -112,12 +115,11 @@ namespace NeonSerpent.Audio
             return src;
         }
 
-        private IEnumerator ReturnToPoolWhenDone(AudioSource source, float delay)
+        private IEnumerator ReturnToPoolWhenDone(AudioSource source, float delay, Action onDone)
         {
             yield return new WaitForSeconds(delay + 0.05f);
             source.Stop();
-
-            _activeCoroutines.RemoveAll(c => c == null);
+            onDone?.Invoke();
 
             if (_overflowSources.Contains(source))
             {
@@ -147,6 +149,7 @@ namespace NeonSerpent.Audio
         ShieldAbsorb,
         Combo,
         PoisonExpired,
-        FrenzyActivated  // distinct cue for entering Frenzy Mode in Classic Endless
+        FrenzyActivated, // distinct cue for entering Frenzy Mode in Classic Endless
+        TimerTick        // per-second tick during the last 10 seconds of a campaign timer
     }
 }
