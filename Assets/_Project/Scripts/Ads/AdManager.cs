@@ -34,6 +34,7 @@ using System;
 
 #if GOOGLE_MOBILE_ADS
 using GoogleMobileAds.Api;
+using GoogleMobileAds.Ump.Api;
 #endif
 
 namespace NeonSerpent.Ads
@@ -67,6 +68,15 @@ namespace NeonSerpent.Ads
 
         /// <summary>Returns the rewarded ad unit ID appropriate for this build.</summary>
         private static string RewardedId => Debug.isDebugBuild ? TEST_REWARDED_ID : PROD_REWARDED_ID;
+
+        /// <summary>
+        /// Physical test device hashes for AdMob. Prevents invalid-traffic flags during
+        /// internal testing on real devices. Find your hash in logcat: search for
+        /// "Use RequestConfiguration.Builder().setTestDeviceIds" after first ad load.
+        /// Add each tester's hash here before uploading to the internal track.
+        /// </summary>
+        [Header("Test Devices (add hashes from logcat — see comment above)")]
+        [SerializeField] private string[] _testDeviceIds = new string[0];
 
         #endregion
         // -------------------------------------------------------------------------
@@ -130,23 +140,54 @@ namespace NeonSerpent.Ads
         private void Initialize()
         {
 #if GOOGLE_MOBILE_ADS
-            MobileAds.Initialize(status =>
-            {
-                Debug.Log("[AdManager] Google Mobile Ads SDK initialized.");
-                // Callbacks from MobileAds.Initialize are not guaranteed to arrive on
-                // the main thread. Use MobileAds.RaiseAdEventsOnUnityMainThread if you
-                // need to update UI here; for simple pre-loading it is safe either way.
-                LoadInterstitial();
-                LoadRewarded();
-            });
-
             Debug.Log($"[AdManager] Initializing. Using {(Debug.isDebugBuild ? "TEST" : "PRODUCTION")} ad units.");
+
+            // Register test device IDs to prevent invalid-traffic flags during internal testing.
+            if (_testDeviceIds != null && _testDeviceIds.Length > 0)
+            {
+                var config = new RequestConfiguration();
+                config.TestDeviceIds.AddRange(_testDeviceIds);
+                MobileAds.SetRequestConfiguration(config);
+                Debug.Log($"[AdManager] Registered {_testDeviceIds.Length} test device(s).");
+            }
+
+            // Gather UMP consent before initializing the SDK.
+            // Required for EEA/UK users under GDPR — AdMob policy mandates this flow.
+            var consentParams = new ConsentRequestParameters { TagForUnderAgeOfConsent = false };
+            ConsentInformation.Update(consentParams, updateError =>
+            {
+                if (updateError != null)
+                {
+                    Debug.LogWarning($"[AdManager] UMP consent update failed: {updateError.Message}. Initializing ads anyway.");
+                    InitializeSdk();
+                    return;
+                }
+
+                ConsentForm.LoadAndShowConsentFormIfRequired(formError =>
+                {
+                    if (formError != null)
+                        Debug.LogWarning($"[AdManager] UMP consent form error: {formError.Message}");
+                    InitializeSdk();
+                });
+            });
 #else
             Debug.Log("[AdManager] GOOGLE_MOBILE_ADS not defined — running in stub mode. " +
                       "Import the Google Mobile Ads Unity Plugin and add GOOGLE_MOBILE_ADS " +
                       "to Project Settings > Player > Scripting Define Symbols.");
 #endif
         }
+
+#if GOOGLE_MOBILE_ADS
+        private void InitializeSdk()
+        {
+            MobileAds.Initialize(status =>
+            {
+                Debug.Log("[AdManager] Google Mobile Ads SDK initialized.");
+                LoadInterstitial();
+                LoadRewarded();
+            });
+        }
+#endif
 
         #endregion
         // -------------------------------------------------------------------------

@@ -178,12 +178,8 @@ namespace NeonSerpent.UI
 
         private void OnRestart()
         {
+            CancelInvoke(nameof(ShowAd));
             if (_panel != null) _panel.SetActive(false);
-
-            // Bug C fix: do NOT call _scoreManager.ResetScore() here.
-            // For Campaign and Time Attack, LevelManager.LoadLevel handles the reset.
-            // For Classic mode, GameSession.StartSessionInternal now resets score directly
-            // before snake initialisation. Calling it here created a double reset.
 
             var gm = GameManager.Instance;
             if (gm != null)
@@ -194,6 +190,7 @@ namespace NeonSerpent.UI
 
         private void OnMainMenu()
         {
+            CancelInvoke(nameof(ShowAd));
             if (_panel != null) _panel.SetActive(false);
             // Reset state machine immediately — don't defer inside the scene-load callback,
             // because if SceneLoader.Instance is null (Editor direct-play) the state would
