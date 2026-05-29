@@ -18,6 +18,12 @@ namespace NeonSerpent.UI
         [Header("Layout")]
         [SerializeField] private Transform  _levelGridContainer;
         [SerializeField] private GameObject _levelButtonPrefab;
+        [Tooltip("Optional. A prefab with a TMP_Text used as a per-world section header " +
+                 "(e.g. \"WORLD 1 - NEON CITY\"). If assigned, one is inserted before the " +
+                 "first level of each world. If left null, levels render as a flat list as " +
+                 "before — no header is shown. For correct layout in a GridLayoutGroup the " +
+                 "header should span a full row (e.g. via LayoutElement / a row-spanning cell).")]
+        [SerializeField] private GameObject _worldHeaderPrefab;
 
         [Header("Error State")]
         [SerializeField] private TMPro.TMP_Text _noLevelsErrorText;
@@ -73,9 +79,20 @@ namespace NeonSerpent.UI
 
             var progress = SaveManager.Instance?.Data?.campaignProgress;
             bool previousUnlocked = true;
+            int  previousWorldIndex = int.MinValue; // guarantees a header before the first world
 
             foreach (var level in levels)
             {
+                // Insert a world header whenever we cross into a new world. Levels are already
+                // sorted by WorldIndex then LevelIndex above, so a change in WorldIndex marks
+                // the first level of a world (M-7: previously all 20 levels were an
+                // undifferentiated list with no world separation).
+                if (level.WorldIndex != previousWorldIndex)
+                {
+                    InsertWorldHeader(level);
+                    previousWorldIndex = level.WorldIndex;
+                }
+
                 bool isUnlocked = previousUnlocked;
                 // Use a composite key to avoid collisions when multiple worlds share the same LevelIndex.
                 int progressKey = level.WorldIndex * 100 + level.LevelIndex;
@@ -90,6 +107,35 @@ namespace NeonSerpent.UI
                 // (key present in progress dict), regardless of star count.
                 // Stars are a rating only — not a progression gate.
                 previousUnlocked = progress != null && progress.ContainsKey(progressKey);
+            }
+        }
+
+        /// <summary>
+        /// Instantiates a world section header before the first level of a world. No-op when
+        /// no header prefab is assigned, so the level list still renders without it.
+        /// Prefers a child named "WorldNameText", then any TMP_Text on the prefab.
+        /// </summary>
+        private void InsertWorldHeader(LevelData level)
+        {
+            if (_worldHeaderPrefab == null || _levelGridContainer == null) return;
+
+            var headerGO = Instantiate(_worldHeaderPrefab, _levelGridContainer);
+
+            var label = headerGO.transform.Find("WorldNameText")?.GetComponent<TMP_Text>();
+            if (label == null)
+            {
+                label = headerGO.GetComponentInChildren<TMP_Text>();
+                if (label != null)
+                    Debug.LogWarning($"[LevelSelectUI] World header prefab has no child named 'WorldNameText' — " +
+                                     $"falling back to first TMP_Text found ('{label.name}'). Rename the child to avoid this.");
+            }
+
+            if (label != null)
+            {
+                // Fall back to "WORLD N" when the asset has no WorldName so the header is never blank.
+                label.text = !string.IsNullOrEmpty(level.WorldName)
+                    ? level.WorldName
+                    : $"WORLD {level.WorldIndex + 1}";
             }
         }
 

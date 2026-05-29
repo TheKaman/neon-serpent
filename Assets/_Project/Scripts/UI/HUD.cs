@@ -149,7 +149,14 @@ namespace NeonSerpent.UI
                 _campaignScoreTarget = 0;
                 UpdatePersonalBest(mode);
             }
-            // Campaign personal best is set by HandleLevelLoaded once the level actually loads
+            else
+            {
+                // Campaign: the real "TARGET: X" value arrives shortly via HandleLevelLoaded.
+                // Until then, clear the label so the previous level's / previous session's
+                // stale "NEED: X" value is never visible during the 3-2-1 countdown (M-4).
+                _campaignScoreTarget = 0;
+                if (_personalBestText != null) _personalBestText.text = string.Empty;
+            }
         }
 
         // ── Score events ──────────────────────────────────────────────────────

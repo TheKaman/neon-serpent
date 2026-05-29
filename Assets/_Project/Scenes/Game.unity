@@ -491,7 +491,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.82}
   m_AnchorMax: {x: 1, y: 0.9}
@@ -668,7 +668,7 @@ RectTransform:
   m_Children:
   - {fileID: 904855253}
   - {fileID: 433243076}
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.1, y: 0.86}
   m_AnchorMax: {x: 0.9, y: 0.95}
@@ -912,7 +912,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 158716121}
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.74}
   m_AnchorMax: {x: 1, y: 0.82}
@@ -1298,6 +1298,7 @@ MonoBehaviour:
   _classicBtn: {fileID: 808744791}
   _timeAttackBtn: {fileID: 1067649092}
   _campaignBtn: {fileID: 2048864599}
+  _gameSession: {fileID: 0}
 --- !u!114 &267415478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1358,11 +1359,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NeonSerpent.UI.LevelCompleteUI
   _panel: {fileID: 834559405}
+  _headerText: {fileID: 0}
   _scoreText: {fileID: 1577900224}
   _starsText: {fileID: 1258902462}
   _levelNameText: {fileID: 509587748}
+  _starHintText: {fileID: 0}
   _nextLevelBtn: {fileID: 868517991}
   _mainMenuBtn: {fileID: 609630408}
+  _retryBtn: {fileID: 0}
   _scoreManager: {fileID: 1886452117}
   _levelManager: {fileID: 1545061460}
   _gameSession: {fileID: 936642944}
@@ -1384,6 +1388,7 @@ MonoBehaviour:
   _newBestText: {fileID: 1688063820}
   _restartButton: {fileID: 663596324}
   _mainMenuButton: {fileID: 808146091}
+  _viewLeaderboardBtn: {fileID: 0}
   _scoreManager: {fileID: 1886452117}
   _gameSession: {fileID: 936642944}
 --- !u!114 &267415483
@@ -1474,22 +1479,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1007272270}
-  - {fileID: 685653989}
-  - {fileID: 144149568}
-  - {fileID: 200631174}
-  - {fileID: 295429107}
-  - {fileID: 672783395}
   - {fileID: 327067874}
-  - {fileID: 801315446}
-  - {fileID: 1725924735}
-  - {fileID: 284104494}
   - {fileID: 1827641888}
   - {fileID: 834559406}
   - {fileID: 1906414446}
   - {fileID: 2120391598}
-  - {fileID: 163827507}
   - {fileID: 181379877}
-  - {fileID: 1710349094}
   m_Father: {fileID: 1378394973}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1647,7 +1642,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4216910}
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.3, y: 0.02}
   m_AnchorMax: {x: 0.7, y: 0.09}
@@ -1784,7 +1779,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.88}
   m_AnchorMax: {x: 0.4, y: 0.98}
@@ -2578,7 +2573,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1638713320}
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.82, y: 0.88}
   m_AnchorMax: {x: 0.98, y: 0.98}
@@ -2732,7 +2727,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.9}
   m_AnchorMax: {x: 1, y: 1}
@@ -3166,7 +3161,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.42, y: 0.88}
   m_AnchorMax: {x: 0.82, y: 0.98}
@@ -4131,7 +4126,17 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 685653989}
+  - {fileID: 144149568}
+  - {fileID: 200631174}
+  - {fileID: 295429107}
+  - {fileID: 801315446}
+  - {fileID: 672783395}
+  - {fileID: 1725924735}
+  - {fileID: 284104494}
+  - {fileID: 163827507}
+  - {fileID: 1710349094}
   m_Father: {fileID: 267415487}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5274,6 +5279,7 @@ MonoBehaviour:
   _grid: {fileID: 2114645095}
   _snake: {fileID: 251893703}
   _score: {fileID: 1886452117}
+  _gridRenderer: {fileID: 0}
   _levelData: {fileID: 0}
 --- !u!4 &1545061461
 Transform:
@@ -5863,7 +5869,7 @@ RectTransform:
   m_Children:
   - {fileID: 1362314075}
   - {fileID: 1712643434}
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.2, y: 0.3}
   m_AnchorMax: {x: 0.8, y: 0.55}
@@ -6180,7 +6186,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1640752574}
-  m_Father: {fileID: 267415487}
+  m_Father: {fileID: 1007272270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.01, y: 0.02}
   m_AnchorMax: {x: 0.35, y: 0.09}

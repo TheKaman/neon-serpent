@@ -421,19 +421,9 @@ public class NeonSerpentSetup : EditorWindow
         }
 
         // MusicManager — crossfades between menu and game music tracks.
-        // Clip references are populated from the SoundLibrary asset so that
-        // SoundLibrarySetup can update them automatically without re-running Setup.
+        // Music clip refs are wired separately via the Inspector or MusicManager's own fields.
         var musicMgrGO  = CreateChild("[MusicManager]", managersGO);
         var musicMgr    = musicMgrGO.AddComponent<MusicManager>();
-        {
-            const string slPath = "Assets/_Project/ScriptableObjects/SoundLibrary.asset";
-            var soundLib = AssetDatabase.LoadAssetAtPath<SoundLibrary>(slPath);
-            if (soundLib != null)
-            {
-                SetRef(musicMgr, "_menuMusic", soundLib.MenuMusic);
-                SetRef(musicMgr, "_gameMusic", soundLib.GameMusic);
-            }
-        }
 
         // AdManager
         var adGO = CreateChild("[AdManager]", managersGO);

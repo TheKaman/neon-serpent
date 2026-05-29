@@ -273,7 +273,12 @@ namespace NeonSerpent.Core
             _powerUpSpawner?.StartSpawning(allowed);
         }
 
-        private void HandleGameOver()
+        /// <param name="timerExpired">
+        /// Unused here — GameSession only tears down session systems on game over. The flag
+        /// exists to match GameManager.OnGameOver's signature (consumed by GameOverUI for the
+        /// "TIME'S UP!" vs "GAME OVER" header).
+        /// </param>
+        private void HandleGameOver(bool timerExpired)
         {
             _sessionStarted   = false;
             _countdownRunning = false;

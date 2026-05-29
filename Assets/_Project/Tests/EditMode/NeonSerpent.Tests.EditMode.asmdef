@@ -3,7 +3,8 @@
     "rootNamespace": "NeonSerpent.Tests",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "NeonSerpent.Runtime"
     ],
     "includePlatforms": [
         "Editor"

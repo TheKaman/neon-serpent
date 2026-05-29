@@ -122,7 +122,9 @@ namespace NeonSerpent.Levels
             {
                 _active = false;
                 if (GameManager.Instance != null)
-                    GameManager.Instance.TriggerGameOver();
+                    // timerExpired: true → GameOverUI shows "TIME'S UP!" instead of "GAME OVER",
+                    // since reaching the clock limit in Time Attack is a finish, not a failure.
+                    GameManager.Instance.TriggerGameOver(timerExpired: true);
             }
         }
     }

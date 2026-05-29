@@ -21,7 +21,12 @@ namespace NeonSerpent.Core
         // --- Events (subscribe to these, never call state-change methods from other systems) ---
         public event Action<GameState> OnStateChanged;
         public event Action<GameMode>  OnGameStarted;
-        public event Action            OnGameOver;
+        /// <summary>
+        /// Raised when the game ends. The bool payload is true when the run ended because a
+        /// timed mode's clock reached zero (a success/finish), and false for a fatal collision
+        /// (a failure). UI uses this to show "TIME'S UP!" vs "GAME OVER".
+        /// </summary>
+        public event Action<bool>      OnGameOver;
         public event Action            OnPaused;
         public event Action            OnResumed;
         public event Action            OnLevelComplete;
@@ -54,12 +59,20 @@ namespace NeonSerpent.Core
             OnResumed?.Invoke();
         }
 
-        /// <summary>Trigger game over sequence. Called by SnakeController on fatal collision.</summary>
-        public void TriggerGameOver()
+        /// <summary>
+        /// Trigger game over sequence. Called by SnakeController/GameSession on a fatal
+        /// collision, and by LevelManager when a timed mode's clock reaches zero.
+        /// </summary>
+        /// <param name="timerExpired">
+        /// True when the run ended because the timer hit zero (a Time Attack finish), false
+        /// for a fatal collision. Propagated to <see cref="OnGameOver"/> so UI can distinguish
+        /// "TIME'S UP!" from "GAME OVER".
+        /// </param>
+        public void TriggerGameOver(bool timerExpired = false)
         {
             if (CurrentState != GameState.Playing) return;
             SetState(GameState.GameOver);
-            OnGameOver?.Invoke();
+            OnGameOver?.Invoke(timerExpired);
         }
 
         /// <summary>Trigger level complete sequence. Called by LevelManager on win condition.</summary>

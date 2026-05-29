@@ -1581,6 +1581,12 @@ MonoBehaviour:
   _titleGroup: {fileID: 866258000}
   _buttonsGroup: {fileID: 1172793595}
   _bestScoreText: {fileID: 2114645095}
+  _classicBtn: {fileID: 1890628961}
+  _timeAttackBtn: {fileID: 1124888087}
+  _campaignBtn: {fileID: 18130215}
+  _leaderboardBtn: {fileID: 251893705}
+  _shopBtn: {fileID: 2071266129}
+  _settingsBtn: {fileID: 745257873}
   _titleSlideDist: 60
   _titleFadeDur: 0.45
   _buttonsFadeDur: 0.35

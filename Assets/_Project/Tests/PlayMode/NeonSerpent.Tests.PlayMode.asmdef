@@ -2,7 +2,8 @@
     "name": "NeonSerpent.Tests.PlayMode",
     "rootNamespace": "NeonSerpent.Tests",
     "references": [
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "NeonSerpent.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

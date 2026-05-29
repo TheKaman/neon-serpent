@@ -19,6 +19,10 @@ namespace NeonSerpent.UI
     {
         [Header("UI Elements")]
         [SerializeField] private GameObject _panel;
+        [Tooltip("Header label at the top of the game-over panel. Shows \"GAME OVER\" on a " +
+                 "fatal collision and \"TIME'S UP!\" when a Time Attack run ends on the clock. " +
+                 "Assign the existing header TMP_Text in the Inspector.")]
+        [SerializeField] private TMP_Text   _headerText;
         [SerializeField] private TMP_Text   _finalScoreText;
         [SerializeField] private TMP_Text   _bestScoreText;
         [SerializeField] private TMP_Text   _newBestText;
@@ -46,7 +50,7 @@ namespace NeonSerpent.UI
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameOver += Show;
             else if (_gameSession != null)
-                _gameSession.OnSessionGameOver += Show;
+                _gameSession.OnSessionGameOver += HandleSessionGameOver;
         }
 
         private void OnDisable()
@@ -54,10 +58,21 @@ namespace NeonSerpent.UI
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameOver -= Show;
             else if (_gameSession != null)
-                _gameSession.OnSessionGameOver -= Show;
+                _gameSession.OnSessionGameOver -= HandleSessionGameOver;
         }
 
-        private void Show()
+        /// <summary>
+        /// Adapter for the Editor-only GameSession path, which raises a parameterless event.
+        /// That path only fires on a fatal collision (the timer route goes through
+        /// GameManager), so it is always treated as a non-timer game over.
+        /// </summary>
+        private void HandleSessionGameOver() => Show(false);
+
+        /// <param name="timerExpired">
+        /// True when a Time Attack run ended on the clock — shows "TIME'S UP!" instead of
+        /// "GAME OVER" so a high-scoring player is not told they failed.
+        /// </param>
+        private void Show(bool timerExpired)
         {
             // Do not show the game-over panel when a campaign level has already been
             // completed — LevelCompleteUI owns that state.
@@ -70,6 +85,19 @@ namespace NeonSerpent.UI
             if (_panel != null && _panel.activeSelf) return;
 
             if (_panel != null) _panel.SetActive(true);
+
+            // Header copy: a Time Attack run that ends on the clock is a finish, not a failure —
+            // show "TIME'S UP!" so a player who scored well is not told "GAME OVER".
+            // A timer expiry in Campaign means the score target was NOT reached in time, which IS
+            // a failure, so the timerExpired flag alone is not enough — gate on Time Attack mode.
+            if (_headerText != null)
+            {
+                GameMode mode = GameManager.Instance != null
+                    ? GameManager.Instance.CurrentMode
+                    : GameMode.ClassicEndless;
+                bool timesUp = timerExpired && mode == GameMode.TimeAttack;
+                _headerText.text = timesUp ? "TIME'S UP!" : "GAME OVER";
+            }
 
             // Hide "NEW BEST!" by default; show it below only if the player beat their record.
             if (_newBestText != null) _newBestText.gameObject.SetActive(false);

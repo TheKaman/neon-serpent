@@ -106,9 +106,22 @@ namespace NeonSerpent.UI
         {
             if (_bestScoreText == null || SaveManager.Instance == null) return;
 
-            var scores = SaveManager.Instance.Data.GetLocalTopScores(Constants.LEADERBOARD_CLASSIC, 1);
-            long best  = scores.Count > 0 ? scores[0].Score : 0;
+            // Show the highest score across ALL three modes, not just Classic. Previously this
+            // hardcoded LEADERBOARD_CLASSIC, so a Time Attack / Campaign player always saw
+            // "BEST 0" on the menu even after high-scoring runs.
+            long best = 0;
+            best = System.Math.Max(best, TopScoreFor(Constants.LEADERBOARD_CLASSIC));
+            best = System.Math.Max(best, TopScoreFor(Constants.LEADERBOARD_TIME_ATTACK));
+            best = System.Math.Max(best, TopScoreFor(Constants.LEADERBOARD_CAMPAIGN));
+
             _bestScoreText.text = best > 0 ? $"BEST  {best:N0}" : string.Empty;
+        }
+
+        /// <summary>Returns the player's top local score for the given leaderboard, or 0 if none.</summary>
+        private long TopScoreFor(string leaderboardId)
+        {
+            var scores = SaveManager.Instance.Data.GetLocalTopScores(leaderboardId, 1);
+            return scores.Count > 0 ? scores[0].Score : 0;
         }
 
         private void StartMode(GameMode mode)

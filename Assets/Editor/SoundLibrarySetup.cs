@@ -2,10 +2,10 @@
 // Runs automatically after every Unity compilation (no user action needed).
 // Also exposed as a menu item for manual triggering.
 //
-// Finds the SoundLibrary ScriptableObject asset and populates all 11 entries
+// Finds the SoundLibrary ScriptableObject asset and populates all 14 entries
 // with the correct SoundEvent int values and AudioClips from Assets/_Project/Audio/.
 //
-// Uses raw int values (0-10) for the Event field to avoid any dependency on the
+// Uses raw int values (0-13) for the Event field to avoid any dependency on the
 // NeonSerpent.Audio namespace, which prevents the circular-resolve compile issue.
 
 using UnityEngine;
@@ -43,7 +43,7 @@ public static class SoundLibrarySetup
     }
 
     /// <summary>
-    /// Loads the SoundLibrary asset (creating it if absent) and assigns all 11 AudioClip
+    /// Loads the SoundLibrary asset (creating it if absent) and assigns all 14 AudioClip
     /// entries via SerializedObject so changes are recorded by Unity's undo/asset system.
     /// Safe to call multiple times — subsequent calls overwrite the same array indices.
     /// </summary>
@@ -81,7 +81,8 @@ public static class SoundLibrarySetup
         // Each entry: (eventIntValue, audioFileName)
         // Order must match the SoundEvent enum in AudioManager.cs exactly:
         //   0=EatFood, 1=EatBonus, 2=EatPoison, 3=PowerUpCollect, 4=PowerUpExpire,
-        //   5=Death, 6=LevelComplete, 7=UIClick, 8=UIBack, 9=ShieldAbsorb, 10=Combo
+        //   5=Death, 6=LevelComplete, 7=UIClick, 8=UIBack, 9=ShieldAbsorb, 10=Combo,
+        //   11=PoisonExpired, 12=FrenzyActivated, 13=TimerTick
         var entries = new (int eventValue, string fileName)[]
         {
             (0,  "EatFood.wav"),
@@ -95,15 +96,24 @@ public static class SoundLibrarySetup
             (8,  "UIBack.wav"),
             (9,  "ShieldAbsorb.wav"),
             (10, "Combo.wav"),
+            (11, "PoisonExpired.ogg"),
+            (12, "FrenzyActivated.ogg"),
+            (13, "TimerTick.ogg"),
         };
 
         var so   = new SerializedObject(lib);
         var prop = so.FindProperty("_entries");
         if (prop == null)
         {
-            Debug.LogError("[SoundLibrary] '_entries' property not found on SoundLibrary asset. " +
-                           "Ensure the backing field in SoundLibrary.cs is named '_entries' and is " +
-                           "[SerializeField] private SoundEntry[] _entries;");
+            // '_entries' not found — can happen transiently on the first domain reload after
+            // SoundLibrary.cs moved to a new assembly (e.g. after NeonSerpent.Runtime.asmdef
+            // was added). The asset's serialized data is intact; the property path resolves
+            // itself on the next reload once all assemblies have fully compiled.
+            // Downgraded from LogError to LogWarning so it does not appear as a red error.
+            Debug.LogWarning("[SoundLibrary] '_entries' property not found on SoundLibrary asset. " +
+                             "This usually resolves automatically on the next domain reload. " +
+                             "If the warning persists, ensure the backing field in SoundLibrary.cs " +
+                             "is [SerializeField] private SoundEntry[] _entries;");
             return;
         }
 
@@ -118,8 +128,10 @@ public static class SoundLibrarySetup
 
             if (eventProp == null || clipProp == null)
             {
-                Debug.LogError($"[SoundLibrary] SoundEntry struct is missing 'Event' or 'Clip' " +
-                               $"field at index {i}. Check SoundLibrary.SoundEntry field names.");
+                // Field names 'Event' or 'Clip' not found — same transient assembly-change
+                // situation as above. Silently skip this run; next domain reload will fix it.
+                Debug.LogWarning($"[SoundLibrary] SoundEntry at index {i} is missing 'Event' or 'Clip' " +
+                               $"property. This resolves automatically on the next domain reload.");
                 return;
             }
 

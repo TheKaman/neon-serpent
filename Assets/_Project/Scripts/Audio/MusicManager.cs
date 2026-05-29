@@ -49,6 +49,17 @@ namespace NeonSerpent.Audio
             base.Awake();
             _sourceA = CreateMusicSource("MusicSource_A");
             _sourceB = CreateMusicSource("MusicSource_B");
+
+            // Ship guard: these clips are assigned in the Bootstrap scene Inspector (the
+            // NeonSerpentSetup auto-wiring no longer sets them). If either is null the game
+            // runs silently — warn so a missing assignment is caught before release rather
+            // than shipping with no music. CrossfadeTo() already no-ops safely on a null clip.
+            if (_menuMusic == null)
+                Debug.LogWarning("[MusicManager] _menuMusic is not assigned — menu will be silent. " +
+                                 "Assign it on the MusicManager component in the Bootstrap scene.");
+            if (_gameMusic == null)
+                Debug.LogWarning("[MusicManager] _gameMusic is not assigned — gameplay will be silent. " +
+                                 "Assign it on the MusicManager component in the Bootstrap scene.");
         }
 
         private void Start()

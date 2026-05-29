@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -51,8 +52,23 @@ namespace NeonSerpent.UI
         [SerializeField] private Button   _removeAdsBtn;
         [SerializeField] private TMP_Text _removeAdsBtnText;
 
+        [Header("Watch Ad for Coins")]
+        [Tooltip("Optional. Create the button in the Shop scene and assign it here. " +
+                 "If left null, the watch-ad feature is simply absent — no error.")]
+        [SerializeField] private Button   _watchAdBtn;
+        [SerializeField] private TMP_Text _watchAdBtnText;
+
         [Header("Navigation")]
         [SerializeField] private Button _backBtn;
+
+        #endregion
+        // -------------------------------------------------------------------------
+        #region Private State
+
+        // Tracks the temporary "purchases unavailable" message shown on the Remove Ads
+        // button so it can be cancelled cleanly on disable (project rule: every
+        // StartCoroutine stores its handle and is stopped on cleanup).
+        private Coroutine _buttonMessageCoroutine;
 
         #endregion
         // -------------------------------------------------------------------------
@@ -72,23 +88,23 @@ namespace NeonSerpent.UI
             if (IAPManager.Instance != null)
                 IAPManager.Instance.OnAdsRemoved -= HandleAdsRemoved;
 #endif
+            if (_buttonMessageCoroutine != null)
+            {
+                StopCoroutine(_buttonMessageCoroutine);
+                _buttonMessageCoroutine = null;
+            }
         }
 
         private void Start()
         {
             _removeAdsBtn?.onClick.AddListener(OnRemoveAdsBtn);
+            _watchAdBtn?.onClick.AddListener(OnWatchAdBtn);
             _backBtn?.onClick.AddListener(OnBackBtn);
-
-            // TODO (Watch Ad for Coins): Add a [SerializeField] private Button _watchAdBtn field,
-            // create the button in the Shop scene, then wire it here:
-            //   _watchAdBtn?.onClick.AddListener(() =>
-            //       AdManager.Instance?.ShowRewardedAd(coins => SaveManager.Instance?.AwardCoins(coins)));
-            // After the lambda fires, call RefreshCoins() so the balance updates immediately.
-            // Hide _watchAdBtn when AdManager.Instance?.IsAdFree == true (same pattern as _removeAdsBtn).
 
             RefreshCoins();
             PopulateSkinGrid();
             RefreshRemoveAdsButton();
+            RefreshWatchAdButton();
         }
 
         #endregion
@@ -170,8 +186,47 @@ namespace NeonSerpent.UI
 
             IAPManager.Instance.BuyProduct(Constants.IAP_REMOVE_ADS);
 #else
+            // Without the Unity IAP package the purchase cannot proceed. The player still
+            // tapped a visible button, so we MUST give visible feedback — a silent log is
+            // a store-policy and UX failure (player taps, nothing happens). Surface a brief
+            // message on the button itself rather than failing silently.
             Debug.LogWarning("[ShopUI] Unity IAP package not installed — Remove Ads purchase unavailable.");
+            ShowButtonMessage(_removeAdsBtnText,
+                "In-app purchases are currently unavailable. Please try again later.");
 #endif
+        }
+
+        /// <summary>
+        /// Plays a rewarded ad and, on a verified completion, awards coins and refreshes
+        /// the balance. No-op for ad-free players (they already paid for an ad-free
+        /// experience and should use a coin-pack IAP instead). AdManager re-checks the
+        /// ad-free guard internally, so the reward can never be granted to an ad-free player.
+        /// </summary>
+        private void OnWatchAdBtn()
+        {
+            bool adFree = SaveManager.Instance != null && SaveManager.Instance.Data.isAdFree;
+            if (adFree)
+            {
+                // Defensive: the button should already be hidden for ad-free players via
+                // RefreshWatchAdButton(), but guard here in case visibility state is stale.
+                ShowButtonMessage(_watchAdBtnText, "You already have an ad-free experience.");
+                return;
+            }
+
+            if (AdManager.Instance == null)
+            {
+                Debug.LogWarning("[ShopUI] AdManager not available — cannot show rewarded ad.");
+                ShowButtonMessage(_watchAdBtnText, "Ads are unavailable right now. Please try again later.");
+                return;
+            }
+
+            AdManager.Instance.ShowRewardedAd(coins =>
+            {
+                // Fired on the main thread only on a verified earn (not on skip/close).
+                SaveManager.Instance?.AwardCoins(coins);
+                SaveManager.Instance?.Save();   // flush immediately — a crash before the next auto-save would silently lose the earned coins
+                RefreshCoins();
+            });
         }
 
         /// <summary>Navigates back to the Main Menu scene.</summary>
@@ -227,6 +282,38 @@ namespace NeonSerpent.UI
             if (_removeAdsBtn == null) return;
             bool adFree = SaveManager.Instance != null && SaveManager.Instance.Data.isAdFree;
             _removeAdsBtn.gameObject.SetActive(!adFree);
+        }
+
+        /// <summary>
+        /// Hides the Watch Ad button for ad-free players (same visibility rule as Remove Ads).
+        /// Ad-free players do not receive the watch-ad coin reward by design.
+        /// </summary>
+        private void RefreshWatchAdButton()
+        {
+            if (_watchAdBtn == null) return;
+            bool adFree = SaveManager.Instance != null && SaveManager.Instance.Data.isAdFree;
+            _watchAdBtn.gameObject.SetActive(!adFree);
+        }
+
+        /// <summary>
+        /// Briefly replaces a button's label with <paramref name="message"/>, then restores
+        /// the original text. Used to surface feedback for actions that cannot complete
+        /// (e.g. IAP unavailable) so the player never taps into silence. Safe with a null label.
+        /// </summary>
+        private void ShowButtonMessage(TMP_Text label, string message)
+        {
+            if (label == null) return;
+            if (_buttonMessageCoroutine != null) StopCoroutine(_buttonMessageCoroutine);
+            _buttonMessageCoroutine = StartCoroutine(ButtonMessageRoutine(label, message));
+        }
+
+        private IEnumerator ButtonMessageRoutine(TMP_Text label, string message)
+        {
+            string original = label.text;
+            label.text = message;
+            yield return new WaitForSecondsRealtime(2.5f);
+            label.text = original;
+            _buttonMessageCoroutine = null;
         }
 
         private void EquipSkin(string skinId, PlayerData data)

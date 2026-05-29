@@ -69,6 +69,13 @@ namespace NeonSerpent.UI
             ShowTab(GameMode.ClassicEndless);
         }
 
+        private void OnEnable()
+        {
+            // Re-evaluated on every open so GPGS auth state changes are picked up even
+            // without a full scene reload (e.g. panel-based navigation in future).
+            RefreshOnlineButton();
+        }
+
         #endregion
         // -------------------------------------------------------------------------
         #region Public API
@@ -131,6 +138,17 @@ namespace NeonSerpent.UI
             {
                 Debug.Log("[LeaderboardUI] Sign in required to view the online leaderboard.");
             }
+        }
+
+        /// <summary>
+        /// Shows the "View Online" button only when an authenticated leaderboard service is
+        /// present; otherwise hides it so the player cannot tap into a no-op.
+        /// </summary>
+        private void RefreshOnlineButton()
+        {
+            if (_onlineBtn == null) return;
+            bool canShowOnline = _leaderboardService != null && _leaderboardService.IsAuthenticated;
+            _onlineBtn.gameObject.SetActive(canShowOnline);
         }
 
         /// <summary>Navigates back to the Main Menu scene.</summary>

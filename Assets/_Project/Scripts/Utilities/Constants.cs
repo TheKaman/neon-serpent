@@ -30,6 +30,12 @@ namespace NeonSerpent.Utilities
         public const int COINS_COMBO_BONUS   = 2;   // awarded per combo milestone
 
         // --- Google Play Games Services leaderboard IDs ---
+        // WARNING: These IDs MUST be verified against the actual leaderboards created in the
+        // Google Play Console (Play Games Services > Leaderboards) before GPGS is enabled
+        // (i.e. before the GPGS_ENABLED scripting define is added). They have the correct
+        // GPGS ID format but are NOT confirmed to map to live leaderboards. Submitting scores
+        // to a wrong/nonexistent ID fails silently at runtime — no exception, no leaderboard entry.
+        // Cross-check each ID against the Console's "Leaderboard ID" field before shipping GPGS.
         public const string LEADERBOARD_CLASSIC     = "CgkIm4mcgZEWAIQAA";
         public const string LEADERBOARD_TIME_ATTACK = "CgkIm4mcgZEWAIQAQ";
         public const string LEADERBOARD_CAMPAIGN    = "CgkIm4mcgZEWAIQAg";

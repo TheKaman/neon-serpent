@@ -35,7 +35,7 @@ namespace NeonSerpent.UI
                 { PowerUpType.Shield,          new TooltipData("SHIELD",        "Absorbs one fatal collision",               new Color(0.00f, 0.80f, 1.00f)) },
                 { PowerUpType.ScoreMultiplier, new TooltipData("2\u00d7 SCORE", "Double points for 8 seconds",               new Color(1.00f, 0.40f, 1.00f)) },
                 { PowerUpType.GhostMode,       new TooltipData("GHOST MODE",    "Pass through your own body for 6 seconds",  new Color(0.40f, 1.00f, 0.40f)) },
-                { PowerUpType.ShrinkPill,      new TooltipData("SHRINK",        "Removes 3 tail segments instantly",         new Color(1.00f, 0.50f, 0.00f)) },
+                { PowerUpType.ShrinkPill,      new TooltipData("SHRINK",        "Removes 20% of your tail (min. 3)",         new Color(1.00f, 0.50f, 0.00f)) },
                 { PowerUpType.Poison,          new TooltipData("POISONED!",     "Half speed \u2014 next 2 foods score zero", new Color(0.60f, 1.00f, 0.20f)) },
             };
 
